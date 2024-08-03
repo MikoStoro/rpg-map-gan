@@ -11,3 +11,5 @@ Analogicznie jak poprzedni, ale zwraca generator. Do funkcji create() można pod
 
 ## train_gan_wasserstein.py
 Zawiera algorytm uczenia sieci neuronowej. Ten plik należy uruchomić, aby rozpocząć uczenie
+
+UWAGA: Kod jest przystosowany do wersji Tensorflow, która jest zainstalowana na serwerach Google colab. Może nie działać odpalony lokalnie

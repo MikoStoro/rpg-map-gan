@@ -3,9 +3,10 @@ from gan_utils import *
 import tensorflow
 import numpy as np
 from tensorflow.keras import backend as backend
-from generator_model import *
-from discriminator_model import *
-import img_to_grid as i2g
+import generator_model
+import discriminator_model
+
+DATASET = "file name here"
 
 generator_optimizer = tensorflow.keras.optimizers.RMSprop(OPTIMIZER_LR)
 discriminator_optimizer = tensorflow.keras.optimizers.RMSprop(OPTIMIZER_LR)
@@ -66,11 +67,9 @@ def train_gan(num_epochs, image_data, generator, discriminator):
 
 
 def load_data():
-    maps = np.load('dataset_33.npy')
+    maps = np.load(DATASET)
     maps = np.array(maps)
     maps = maps.astype('float16')
-    maps = i2g.cut_images(maps,16)
-    generate_data_image(maps,16,16)
     dataset = tensorflow.data.Dataset.from_tensor_slices(maps).shuffle(10000).repeat(1).batch(BATCH_SIZE)
     return dataset
     
@@ -83,8 +82,8 @@ def run_gan():
   # Get image data
   data = load_data()
   # Create generator and discriminator
-  generator = Generator().create()
-  discriminator = Discriminator(wasserstein=True).create()
+  generator = generator_model.create()
+  discriminator = discriminator_model.create(wasserstein=True)
   # Train the GAN
   print('Training GAN ...')
   train_gan(NUM_EPOCHS, data, generator, discriminator)
