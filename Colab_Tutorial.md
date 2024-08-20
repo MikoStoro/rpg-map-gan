@@ -21,15 +21,15 @@ Tutaj wszystko, czego możenie potrzebować
 wyświetla wszystkie dostępne remotes, czyli miejsca, z którymi możemy się synchronizować - Gdrive stanowi remote
 
 ### rclone tree <target:path>
-ex. rclone tree gdrive_mikostoro:/
+ex. rclone tree gdrive_mikostoro:/  
 wyświetla pliki w danej lokacji
 
 ### rclone copy <source> <destination>
-ex. rclone copy . gdrive_mikostoro:/gan_shared_folder
-ex.  rclone copy models gdrive_mikostoro:/gan_shared_folder/models
-Sugerowane do kopiowania plików na Dysk - nie na odwrót (chmura i git się nie lubią)
-Można przesyłać pojedyncze pliki - przydatne przy wgrywaniu  datasetów (unikaj jednak uploadowania nieskompresowanych - taka operacja długo trwa)
-uwaga: jeśli source jest folderem, to kopiowana jest jego zawartość - czyli w destination pojawi się szereg pojedynczych plików, nie cały folder
+ex. rclone copy . gdrive_mikostoro:/gan_shared_folder  
+ex.  rclone copy models gdrive_mikostoro:/gan_shared_folder/models  
+Sugerowane do kopiowania plików na Dysk - nie na odwrót (chmura i git się nie lubią)  
+Można przesyłać pojedyncze pliki - przydatne przy wgrywaniu  datasetów (unikaj jednak uploadowania nieskompresowanych - taka operacja długo trwa)  
+uwaga: jeśli source jest folderem, to kopiowana jest jego zawartość - czyli w destination pojawi się szereg pojedynczych plików, nie cały folder  
 uwaga: przy zmianach w kodzie nie kopiuj całego repozytorium, a tylko folder z kodem, by zaoszczędzić czas
 
 ## Notatnik
