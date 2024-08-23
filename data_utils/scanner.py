@@ -24,16 +24,16 @@ DEFINED_COLORS = {
 }
 
 
-def processImage(file_path):
+def _process_image(file_path):
     return Image.open(file_path).resize((RESIZE, RESIZE)).filter(ImageFilter.BLUR)
 
 
-def get_closest_defined_color_symbol(color: tuple, defined_colors: dict) -> str:
-    distances = {get_rgb_distance(color, k): k for k in defined_colors.keys()}
+def _get_closest_defined_color_symbol(color: tuple, defined_colors: dict) -> str:
+    distances = {_get_rgb_distance(color, k): k for k in defined_colors.keys()}
     return defined_colors.get(distances.get(min(distances.keys())))
 
 
-def int_to_rgb(value: int) -> tuple:
+def _int_to_rgb(value: int) -> tuple:
     if not (0 <= value <= 0xFFFFFF):
         raise ValueError("Value should be between 0 and 0xFFFFFF")
 
@@ -44,32 +44,32 @@ def int_to_rgb(value: int) -> tuple:
     return red, green, blue
 
 
-def get_rgb_distance(a: tuple, b: tuple) -> floating[Any]:
+def _get_rgb_distance(a: tuple, b: tuple) -> floating[Any]:
     point1 = np.array(a)
     point2 = np.array(b)
     return np.linalg.norm(point1 - point2)
 
 
-def get_avg_color(channel, pixels):
+def _get_avg_color(channel, pixels):
     lst = [colors[channel] for colors in pixels]
     return round(sum(lst) / len(lst))
 
 
-def get_avg_rgb(img):
+def _get_avg_rgb(img):
     pixels = list(img.getdata())
     avg_rgb = []
     for channel in range(3):
-        avg_rgb.append(get_avg_color(channel, pixels))
+        avg_rgb.append(_get_avg_color(channel, pixels))
     return avg_rgb
 
 
-def get_most_common_color(img):
+def _get_most_common_color(img):
     pixels = list(img.getdata())
     count_dict = {i: pixels.count(i) for i in pixels}
     return max(count_dict, key=count_dict.get)
 
 
-def image_into_grid(image: PIL.Image.Image, d: int):
+def _image_into_grid(image: PIL.Image.Image, d: int):
     w, h = image.size
     grid = product(range(0, h - h % d, d), range(0, w - w % d, d))
     output = []
@@ -80,7 +80,7 @@ def image_into_grid(image: PIL.Image.Image, d: int):
     return output
 
 
-def remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
+def _remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
     rows, cols = color_matrix.shape
     for i in range(rows):
         for j in range(cols):
@@ -114,18 +114,10 @@ def remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
                     continue
             color_matrix[i, j] = neighbor
 
-
-def scan_map(file_path: str, defined_colors=None):
-    color_matrix = create_color_matrix(file_path, defined_colors)
-    remove_isolated_pixels(color_matrix)
-    dataset = numpy_arr_to_dataset(color_matrix)
-    return dataset
-
-
-def create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8):
+def _create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8):
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
-    with processImage(file_path).convert("RGBA") as img:
+    with _process_image(file_path).convert("RGBA") as img:
         width, height = img.size
         opacity = int(255 * opacity)
         reversed_defined_colors_dict = {value: (key + (opacity,)) for key, value in defined_colors.items()}
@@ -140,13 +132,7 @@ def create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], def
         output = Image.alpha_composite(img, overlay)
     output.save(file_path + "debug.png")
 
-
-def debug_scan_map(file_path: str, defined_colors=None):
-    color_matrix = scan_map(file_path, defined_colors)
-    create_debug_map(file_path, color_matrix, defined_colors)
-
-
-def sliding_window_submatrices(matrix, window_size, step_size, replace_value):
+def _sliding_window_matrices(matrix, window_size=16, step_size=14, replace_value=0):
     padded_matrix = np.pad(matrix, pad_width=window_size // 2, mode='constant', constant_values=replace_value)
     submatrices = []
 
@@ -160,22 +146,49 @@ def sliding_window_submatrices(matrix, window_size, step_size, replace_value):
     return np.array(submatrices)
 
 
-def create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any, np.dtype[Any]]:
+def _create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any, np.dtype[Any]]:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
-    with processImage(file_path) as img:
+    with _process_image(file_path) as img:
         w, h = img.size
-        tiles = image_into_grid(img, GRID_SIZE)
+        tiles = _image_into_grid(img, GRID_SIZE)
     rgb_list = []
     for tile in tiles:
-        most_common_color = get_most_common_color(tile)
-        rgb_list.append(get_closest_defined_color_symbol(most_common_color, defined_colors))
+        most_common_color = _get_most_common_color(tile)
+        rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
     return np.array(rgb_list, dtype=str).reshape(-1, w // GRID_SIZE)
 
 
-def numpy_arr_to_dataset(arr: np.array):
+def _numpy_arr_to_dataset(arr: np.array):
     return tf.data.Dataset.from_tensor_slices(arr)
+
+#
+
+def debug_scan_map(file_path: str, defined_colors=None):
+    color_matrix = scan_map(file_path, defined_colors)
+    _create_debug_map(file_path, color_matrix, defined_colors)
+
+def serialize_map_submatrices(file_path: str, defined_colors=None, window_size=16, step_size=14, replace_value=0):
+    submatrices =  _sliding_window_matrices(_create_color_matrix(file_path, defined_colors), window_size, step_size, replace_value)
+    np.save(file_path, submatrices)
+
+def scan_map(file_path: str, defined_colors=None):
+    color_matrix = _create_color_matrix(file_path, defined_colors)
+    _remove_isolated_pixels(color_matrix)
+
+    dataset = _numpy_arr_to_dataset(color_matrix)
+    return dataset
+
+
+#
+
+
+
+
+
+
+
 
 
 def create_mouse_event():
@@ -206,7 +219,7 @@ def create_json_with_colors_and_items(path):
         print(coords[i + 1][0])
         cropped_img = Image.fromarray(cropped_img)
         cropped_img.show()
-        rgb = get_most_common_color(cropped_img)
+        rgb = _get_most_common_color(cropped_img)
         colors_dict[name] = rgb
 
     with open(OUTPUT_PATH + '/coords.json', 'w') as f:
