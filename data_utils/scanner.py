@@ -10,6 +10,8 @@ import tensorflow as tf
 import cv2
 import json
 
+from tensorflow.python.types.data import DatasetV2
+
 GRID_SIZE = 8  # size will probably depend on specific map
 RESIZE = 480
 MAP_PATH = "./maps"
@@ -50,12 +52,12 @@ def _get_rgb_distance(a: tuple, b: tuple) -> floating[Any]:
     return np.linalg.norm(point1 - point2)
 
 
-def _get_avg_color(channel, pixels):
+def _get_avg_color(channel, pixels) -> int:
     lst = [colors[channel] for colors in pixels]
     return round(sum(lst) / len(lst))
 
 
-def _get_avg_rgb(img):
+def _get_avg_rgb(img) -> list[int]:
     pixels = list(img.getdata())
     avg_rgb = []
     for channel in range(3):
@@ -63,7 +65,7 @@ def _get_avg_rgb(img):
     return avg_rgb
 
 
-def _get_most_common_color(img):
+def _get_most_common_color(img) -> int:
     pixels = list(img.getdata())
     count_dict = {i: pixels.count(i) for i in pixels}
     return max(count_dict, key=count_dict.get)
@@ -114,7 +116,7 @@ def _remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
                     continue
             color_matrix[i, j] = neighbor
 
-def _create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8):
+def _create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8) -> None:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
     with _process_image(file_path).convert("RGBA") as img:
@@ -132,7 +134,7 @@ def _create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], de
         output = Image.alpha_composite(img, overlay)
     output.save(file_path + "debug.png")
 
-def _sliding_window_matrices(matrix, window_size=16, step_size=14, replace_value=0):
+def _sliding_window_matrices(matrix, window_size=16, step_size=14, replace_value=0)  -> np.ndarray[Any, np.dtype[Any]]:
     padded_matrix = np.pad(matrix, pad_width=window_size // 2, mode='constant', constant_values=replace_value)
     submatrices = []
 
@@ -157,26 +159,25 @@ def _create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any,
         most_common_color = _get_most_common_color(tile)
         rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
-    return np.array(rgb_list, dtype=str).reshape(-1, w // GRID_SIZE)
+    result = np.array(rgb_list, dtype=str).reshape(-1, w // GRID_SIZE)
+    _remove_isolated_pixels(result)
+    return result
 
 
-def _numpy_arr_to_dataset(arr: np.array):
+def _numpy_arr_to_dataset(arr: np.array) -> DatasetV2:
     return tf.data.Dataset.from_tensor_slices(arr)
 
-#
 
-def debug_scan_map(file_path: str, defined_colors=None):
+def debug_scan_map(file_path: str, defined_colors=None) -> None:
     color_matrix = scan_map(file_path, defined_colors)
     _create_debug_map(file_path, color_matrix, defined_colors)
 
-def serialize_map_submatrices(file_path: str, defined_colors=None, window_size=16, step_size=14, replace_value=0):
+def serialize_map_submatrices(file_path: str, defined_colors=None, window_size=16, step_size=14, replace_value=0) -> None:
     submatrices =  _sliding_window_matrices(_create_color_matrix(file_path, defined_colors), window_size, step_size, replace_value)
     np.save(file_path, submatrices)
 
-def scan_map(file_path: str, defined_colors=None):
+def scan_map(file_path: str, defined_colors=None) -> DatasetV2:
     color_matrix = _create_color_matrix(file_path, defined_colors)
-    _remove_isolated_pixels(color_matrix)
-
     dataset = _numpy_arr_to_dataset(color_matrix)
     return dataset
 
