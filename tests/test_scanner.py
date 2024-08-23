@@ -1,4 +1,7 @@
-from data_utils.scanner import Image,_get_closest_defined_color_symbol,_get_most_common_color,_create_color_matrix,np,_remove_isolated_pixels,_sliding_window_matrices,debug_scan_map,serialize_map_submatrices
+from data_utils.scanner import Image, _get_closest_defined_color_symbol, _get_most_common_color, _create_color_matrix, \
+    np, _remove_isolated_pixels, _sliding_window_matrices, debug_scan_map, serialize_map_submatrices, scan_map, \
+    DEFINED_COLORS
+
 
 def test_get_most_common_color():
     img = Image.open("../maps/test/test_common_color.jpg")
@@ -88,10 +91,10 @@ def test_sliding_window_submatrices():
 #     assert data["red"] == [255,0,0]
 
 def test_serialize_map_submatrices():
-    original = _sliding_window_matrices(file_path="../maps/test/colored_grid.png")
-    serialize_map_submatrices(file_path="../maps/test/colored_grid.png")
+    original = _sliding_window_matrices(_create_color_matrix(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS))
+    serialize_map_submatrices(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS)
     loaded = np.load("../maps/test/colored_grid.png.npy")
-    assert np.equal(original,loaded)
+    assert np.array_equal(original,loaded)
 
 def test_debug_scan_map():
     debug_scan_map("../maps/Fort_Joy_Harbour_map.png")

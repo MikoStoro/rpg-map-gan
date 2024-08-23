@@ -13,3 +13,10 @@ Analogicznie jak poprzedni, ale zwraca generator. Do funkcji create() można pod
 Zawiera algorytm uczenia sieci neuronowej. Ten plik należy uruchomić, aby rozpocząć uczenie
 
 UWAGA: Kod jest przystosowany do wersji Tensorflow, która jest zainstalowana na serwerach Google colab. Może nie działać odpalony lokalnie
+
+## scanner.py
+Zmienia mapy w macierze na potrzeby GANa za pomocą funkcji.
+scan_map(): tworzy tensor z całej mapy
+debug_scan_map(): duplikuje mapę i nakłada na nią klasyfikację
+serialize_map_submatrices() : dzieli mapę na kawałki  i ją serializuje
+
