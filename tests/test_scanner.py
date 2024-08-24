@@ -1,11 +1,11 @@
-import json
-import pytest
-from scanner import *
+from data_utils.scanner import Image, _get_closest_defined_color_symbol, _get_most_common_color, _create_color_matrix, \
+    np, _remove_isolated_pixels, _sliding_window_matrices, debug_scan_map, serialize_map_submatrices, scan_map, \
+    DEFINED_COLORS
 
 
 def test_get_most_common_color():
     img = Image.open("../maps/test/test_common_color.jpg")
-    a = get_most_common_color(img)
+    a = _get_most_common_color(img)
     assert a == (4, 50, 100)
 
 
@@ -14,15 +14,15 @@ def test_get_closest_defined_color_symbol():
     color0 = (255, 254, 254)
     color1 = (0, 255, 0)
     color2 = (0, 254, 255)
-    assert get_closest_defined_color_symbol(color0, defined_colors) == 4
-    assert get_closest_defined_color_symbol(color1, defined_colors) == 3
-    assert get_closest_defined_color_symbol(color2, defined_colors) == 2
+    assert _get_closest_defined_color_symbol(color0, defined_colors) == 4
+    assert _get_closest_defined_color_symbol(color1, defined_colors) == 3
+    assert _get_closest_defined_color_symbol(color2, defined_colors) == 2
 
 
 def test_create_color_matrix():
     defined_colors = {(255, 0, 1): 4, (1, 255, 0): 3, (1, 0, 255): 2}
     file = "../maps/test/colored_grid.png"
-    output = create_color_matrix(file, defined_colors)
+    output = _create_color_matrix(file, defined_colors)
 
     assert output[0][0] == '4'
     assert output[0][45] == '3'
@@ -42,7 +42,7 @@ def test_remove_isolated_pixels():
                          ['A', 'A', 'A', 'A'],
                          ['A', 'A', 'A', 'A']])
 
-    remove_isolated_pixels(array)
+    _remove_isolated_pixels(array)
 
     assert np.array_equal(expected, array)
 
@@ -81,7 +81,7 @@ def test_sliding_window_submatrices():
         ]
     ])
 
-    result = sliding_window_submatrices(matrix, window_size, step_size, replace_value)
+    result = _sliding_window_matrices(matrix, window_size, step_size, replace_value)
     assert np.array_equal(result, expected_result)
 
 # def test_mouse_select():
@@ -89,3 +89,13 @@ def test_sliding_window_submatrices():
 #     f = open('coords.json')
 #     data = json.load((f))
 #     assert data["red"] == [255,0,0]
+
+def test_serialize_map_submatrices():
+    original = _sliding_window_matrices(_create_color_matrix(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS))
+    serialize_map_submatrices(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS)
+    loaded = np.load("../maps/test/colored_grid.png.npy")
+    assert np.array_equal(original,loaded)
+
+def test_debug_scan_map():
+    debug_scan_map("../maps/Fort_Joy_Harbour_map.png")
+    debug_scan_map("../maps/Underground_Tunnel_Map.png")
