@@ -95,7 +95,3 @@ def test_serialize_map_submatrices():
     serialize_map_submatrices(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS)
     loaded = np.load("../maps/test/colored_grid.png.npy")
     assert np.array_equal(original,loaded)
-
-def test_debug_scan_map():
-    debug_scan_map("../maps/Fort_Joy_Harbour_map.png")
-    debug_scan_map("../maps/Underground_Tunnel_Map.png")

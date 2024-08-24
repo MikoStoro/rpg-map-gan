@@ -12,8 +12,8 @@ import json
 
 from tensorflow.python.types.data import DatasetV2
 
-GRID_SIZE = 8  # size will probably depend on specific map
-RESIZE = 480
+GRID_SIZE = 10  # size will probably depend on specific map
+RESIZE = 330
 MAP_PATH = "./maps"
 OUTPUT_PATH = "./output"
 
@@ -65,7 +65,7 @@ def _get_avg_rgb(img) -> list[int]:
     return avg_rgb
 
 
-def _get_most_common_color(img) -> int:
+def _get_most_common_color(img) -> tuple:
     pixels = list(img.getdata())
     count_dict = {i: pixels.count(i) for i in pixels}
     return max(count_dict, key=count_dict.get)
@@ -183,7 +183,22 @@ def scan_map(file_path: str, defined_colors=None) -> DatasetV2:
 
 
 #
-
+if __name__ == "__main__":
+    for window_size in [8,9,12]:
+        defined_colors = {
+        (255, 255, 255): 0,  # White
+        (0, 0, 0): 1,  # Black
+        }
+        matrices_list=[]
+        for root, dirs, files in os.walk("../maps/dungeons"):
+            result = None
+            for file in files:
+                file_path = os.path.join(root, file)
+                print("processing",file_path)
+                nextFile = _sliding_window_matrices(_create_color_matrix(file_path,defined_colors), window_size=window_size, step_size=2, replace_value=0)
+                matrices_list.append(nextFile)
+            result = np.concatenate(matrices_list)
+            np.save(f"../datasets/dataset{window_size}x{window_size}", result)
 
 
 
