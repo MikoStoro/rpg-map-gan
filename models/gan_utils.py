@@ -14,7 +14,7 @@ def make_directory_for_run():
   os.mkdir(f'./runs/{UNIQUE_RUN_ID}')
   
   
-def generate_image(generator, epoch = 0, batch = 0, x = 16, y = 16):
+def generate_image(generator, epoch = 0, batch = 0,x = 16,y = 16):
   """ Generate subplots with generated examples. """
   images = []
   noise = generate_noise(BATCH_SIZE)

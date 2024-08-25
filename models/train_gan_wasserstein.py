@@ -6,7 +6,12 @@ from tensorflow.keras import backend as backend
 import generator_model
 import discriminator_model
 
-DATASET = "file name here"
+import generator_model_9x9
+import discriminator_model_9x9
+
+DATASET = "datasets/dataset/dataset9x9.npy"
+IMG_DIMENSION = 9
+BATCH_SIZE = 1000
 
 generator_optimizer = tensorflow.keras.optimizers.RMSprop(OPTIMIZER_LR)
 discriminator_optimizer = tensorflow.keras.optimizers.RMSprop(OPTIMIZER_LR)
@@ -58,7 +63,7 @@ def train_gan(num_epochs, image_data, generator, discriminator):
       # Print statistics and generate image after every n-th batch
       if batch_no % PRINT_STATS_AFTER_BATCH == 0:
         print_training_progress(batch_no, generator_loss, discriminator_loss)
-        generate_image(generator, epoch_no, batch_no)
+        generate_image(generator, epoch_no, batch_no, IMG_DIMENSION, IMG_DIMENSION)
 
     # Save models on epoch completion.
     #####save_models(generator, discriminator, epoch_no)
@@ -82,8 +87,8 @@ def run_gan():
   # Get image data
   data = load_data()
   # Create generator and discriminator
-  generator = generator_model.create()
-  discriminator = discriminator_model.create(wasserstein=True)
+  generator = generator_model_9x9.create()
+  discriminator = discriminator_model_9x9.create(wasserstein=True)
   # Train the GAN
   print('Training GAN ...')
   train_gan(NUM_EPOCHS, data, generator, discriminator)

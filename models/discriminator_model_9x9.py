@@ -33,14 +33,14 @@ def create(wasserstein = True, name="disc"):
         activation = 'tanh'
     
     # First Convolutional block
-    discriminator.add(layers.Input(shape=(16,16,1)))
-    discriminator.add(layers.Conv2D(28, (2, 2), strides=(2, 2), padding='same', kernel_initializer=weight_init, kernel_constraint=constraint))
+    discriminator.add(layers.Input(shape=(9,9,1)))
+    discriminator.add(layers.Conv2D(24, (3, 3), strides=(3, 3), padding='same', kernel_initializer=weight_init, kernel_constraint=constraint))
     discriminator.add(layers.LeakyReLU())
-    discriminator.add(layers.Dropout(0.5))
+    discriminator.add(layers.Dropout(0.25))
     # Second Convolutional block
-    discriminator.add(layers.Conv2D(64, (3, 3), strides=(2, 2), padding='same', kernel_initializer=weight_init,  kernel_constraint=constraint))
+    discriminator.add(layers.Conv2D(12, (2, 2), strides=(3, 3), padding='same', kernel_initializer=weight_init,  kernel_constraint=constraint))
     discriminator.add(layers.LeakyReLU())
-    discriminator.add(layers.Dropout(0.5))
+    discriminator.add(layers.Dropout(0.25))
     # Flatten and generate output prediction
     discriminator.add(layers.Flatten())
     discriminator.add(layers.Dense(1, kernel_initializer=weight_init, activation=activation))
