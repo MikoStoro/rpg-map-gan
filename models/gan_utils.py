@@ -74,3 +74,15 @@ def save_models(generator, discriminator, epoch):
     include_optimizer=True,
     save_format=None, 
   )
+
+def rename_layers(model, name):
+  try: 
+      for layer in discriminator.layers:
+          newname = name + "_" + layer._name
+          layer._name = newname
+  except:
+      try: 
+          for layer in discriminator.layers:
+              newname = name + "_" + layer._name
+              layer.name = newname
+      except: print("Could not set names for layers of model: " + name)

@@ -45,11 +45,8 @@ def create(wasserstein = True, name="disc"):
     discriminator.add(layers.Flatten())
     discriminator.add(layers.Dense(1, kernel_initializer=weight_init, activation=activation))
 
-    try: 
-        for layer in discriminator.layers:
-            newname = name + "_" + layer._name
-            layer._name = newname
-    except: pass
+    
+    rename_layers(discriminator, name)
     print(discriminator.summary())
 
     return discriminator

@@ -27,11 +27,7 @@ def create():
     generator.add(layers.Conv2D(1, (3,3), strides=(1, 1), padding='same', use_bias=False, activation='linear', kernel_initializer=weight_init))
 
     #generator.add(layers.Discretization([0.5]))
-    try:
-        for layer in generator.layers:
-            newname =  "gen_" + layer._name
-            layer._name = newname
-    except: pass
+    rename_layers(generator, name)
 
     print(generator.summary())
 
