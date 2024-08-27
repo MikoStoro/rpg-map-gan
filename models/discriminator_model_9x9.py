@@ -3,6 +3,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import backend as backend
 from tensorflow.keras.constraints import Constraint
 from defines import *
+from gan_utils import rename_layers
 
 
 class ClipConstraint(Constraint):

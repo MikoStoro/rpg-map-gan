@@ -3,11 +3,10 @@ from tensorflow.keras import layers
 from tensorflow.keras import backend as backend
 from tensorflow.keras.constraints import Constraint
 from defines import *
+from gan_utils import rename_layers
 
-    
 
-
-def create():
+def create(name = "gen"):
     weight_init = tensorflow.keras.initializers.RandomNormal(stddev=WEIGHT_INIT_STDDEV, seed = 42)
 
     
