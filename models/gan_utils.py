@@ -1,3 +1,4 @@
+import datetime
 import tensorflow
 import matplotlib.pyplot as plt
 
@@ -5,13 +6,22 @@ import os
 import numpy as np
 from defines import *
 
+UNIQUE_RUN_ID = ""
+
+def generate_run_name():
+  global UNIQUE_RUN_ID
+  now = datetime.datetime.now()
+  UNIQUE_RUN_ID = now.strftime("%d-%m-%Y %H:%M:%S")  # dd/mm/YY H:M:S
+  return UNIQUE_RUN_ID
+
 
 def make_directory_for_run():
   """ Make a directory for this training run. """
-  print(f'Preparing training run {UNIQUE_RUN_ID}')
+  run_id = generate_run_name()
+  print(f'Preparing training run {run_id}')
   if not os.path.exists('./runs'):
     os.mkdir('./runs')
-  os.mkdir(f'./runs/{UNIQUE_RUN_ID}')
+  os.mkdir(f'./runs/{run_id}')
   
   
 def generate_image(generator, epoch = 0, batch = 0,x = 16,y = 16):
