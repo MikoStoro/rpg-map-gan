@@ -9,6 +9,7 @@ from numpy import floating, ndarray, dtype
 import tensorflow as tf
 import cv2
 import json
+import utils_for_utils as utils
 
 from tensorflow.python.types.data import DatasetV2
 
@@ -65,10 +66,10 @@ def _get_avg_rgb(img) -> list[int]:
     return avg_rgb
 
 
-def _get_most_common_color(img) -> tuple:
-    pixels = list(img.getdata())
-    count_dict = {i: pixels.count(i) for i in pixels}
-    return max(count_dict, key=count_dict.get)
+# def _get_most_common_color(img) -> tuple:
+#     pixels = list(img.getdata())
+#     count_dict = {i: pixels.count(i) for i in pixels}
+#     return max(count_dict, key=count_dict.get)
 
 
 def _image_into_grid(image: PIL.Image.Image, d: int):
@@ -156,7 +157,7 @@ def _create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any,
         tiles = _image_into_grid(img, GRID_SIZE)
     rgb_list = []
     for tile in tiles:
-        most_common_color = _get_most_common_color(tile)
+        most_common_color = utils._get_most_common_color(tile)
         rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
     result = np.array(rgb_list, dtype=str).reshape(-1, w // GRID_SIZE)
@@ -181,63 +182,5 @@ def scan_map(file_path: str, defined_colors=None) -> DatasetV2:
     dataset = _numpy_arr_to_dataset(color_matrix)
     return dataset
 
+# debug_scan_map('../maps/Fort_Joy_Ground_Floor-1.png')
 
-#
-if __name__ == "__main__":
-    for window_size in [8,9,12]:
-        defined_colors = {
-        (255, 255, 255): 0,  # White
-        (0, 0, 0): 1,  # Black
-        }
-        matrices_list=[]
-        for root, dirs, files in os.walk("../maps/dungeons"):
-            result = None
-            for file in files:
-                file_path = os.path.join(root, file)
-                print("processing",file_path)
-                nextFile = _sliding_window_matrices(_create_color_matrix(file_path,defined_colors), window_size=window_size, step_size=2, replace_value=0)
-                matrices_list.append(nextFile)
-            result = np.concatenate(matrices_list)
-            np.save(f"../datasets/dataset{window_size}x{window_size}", result)
-
-
-
-
-
-
-
-
-def create_mouse_event():
-    coords = []
-
-    def mouse_press_get_coords_event(event, x, y, flags, params):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            coords.append((x, y))
-
-    return mouse_press_get_coords_event, coords
-
-
-def create_json_with_colors_and_items(path):
-    img = cv2.imread(path, 1)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    cv2.imshow('image', img)
-
-    mouse_press_get_coords_event, coords = create_mouse_event()
-    cv2.setMouseCallback('image', mouse_press_get_coords_event)
-    cv2.waitKey()
-
-    colors_dict = {}
-    for i in range(0, len(coords), 2):
-        name = input("Enter a name: ")
-        cropped_img = img[coords[i][1]:coords[i + 1][1], coords[i][0]:coords[i + 1][0]]
-        print(str(coords[i][0]) + '\n')
-
-        print(coords[i + 1][0])
-        cropped_img = Image.fromarray(cropped_img)
-        cropped_img.show()
-        rgb = _get_most_common_color(cropped_img)
-        colors_dict[name] = rgb
-
-    with open(OUTPUT_PATH + '/coords.json', 'w') as f:
-        json.dump(colors_dict, f)
-    cv2.destroyAllWindows()
