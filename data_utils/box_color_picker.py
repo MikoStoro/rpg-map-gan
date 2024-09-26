@@ -7,9 +7,9 @@ from itertools import product
 import numpy as np
 from numpy import floating
 import tensorflow as tf
+import utils
 import cv2
 import json
-import scanner
 GRID_SIZE = 5  # size will probably depend on specific map
 MAP_PATH = "./maps"
 OUTPUT_PATH = "./output"
@@ -42,7 +42,7 @@ def create_json_with_colors_and_items(path):
         print(coords[i+1][0])
         cropped_img = Image.fromarray(cropped_img)
         cropped_img.show()
-        rgb = scanner._get_most_common_color(cropped_img)
+        rgb = utils.get_most_common_color(cropped_img)
         colors_dict[name]=rgb
 
     with open(OUTPUT_PATH+'/coords.json', 'w') as f:

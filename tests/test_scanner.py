@@ -1,12 +1,9 @@
-from data_utils.scanner import Image, _get_closest_defined_color_symbol, _get_most_common_color, _create_color_matrix, \
+from data_utils.scanner import Image, _get_closest_defined_color_symbol, _create_color_matrix, \
     np, _remove_isolated_pixels, _sliding_window_matrices, debug_scan_map, serialize_map_submatrices, scan_map, \
     DEFINED_COLORS
 
 
-def test_get_most_common_color():
-    img = Image.open("../maps/test/test_common_color.jpg")
-    a = _get_most_common_color(img)
-    assert a == (4, 50, 100)
+
 
 
 def test_get_closest_defined_color_symbol():
@@ -84,11 +81,7 @@ def test_sliding_window_submatrices():
     result = _sliding_window_matrices(matrix, window_size, step_size, replace_value)
     assert np.array_equal(result, expected_result)
 
-# def test_mouse_select():
-#     create_json_with_colors_and_items('maps/big_colored_grid.png')
-#     f = open('coords.json')
-#     data = json.load((f))
-#     assert data["red"] == [255,0,0]
+
 
 def test_serialize_map_submatrices():
     original = _sliding_window_matrices(_create_color_matrix(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS))

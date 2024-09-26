@@ -1,15 +1,11 @@
-import os
 from typing import Any
-
 import PIL
 from PIL import Image, ImageDraw, ImageFilter
 from itertools import product
 import numpy as np
 from numpy import floating, ndarray, dtype
 import tensorflow as tf
-import cv2
-import json
-import utils_for_utils as utils
+import utils
 
 from tensorflow.python.types.data import DatasetV2
 
@@ -26,51 +22,17 @@ DEFINED_COLORS = {
     (50, 140, 50): 'G'  # Green for grass
 }
 
-
 def _process_image(file_path):
     return Image.open(file_path).resize((RESIZE, RESIZE)).filter(ImageFilter.BLUR)
-
 
 def _get_closest_defined_color_symbol(color: tuple, defined_colors: dict) -> str:
     distances = {_get_rgb_distance(color, k): k for k in defined_colors.keys()}
     return defined_colors.get(distances.get(min(distances.keys())))
 
-
-def _int_to_rgb(value: int) -> tuple:
-    if not (0 <= value <= 0xFFFFFF):
-        raise ValueError("Value should be between 0 and 0xFFFFFF")
-
-    red = (value >> 16) & 0xFF
-    green = (value >> 8) & 0xFF
-    blue = value & 0xFF
-
-    return red, green, blue
-
-
 def _get_rgb_distance(a: tuple, b: tuple) -> floating[Any]:
     point1 = np.array(a)
     point2 = np.array(b)
     return np.linalg.norm(point1 - point2)
-
-
-def _get_avg_color(channel, pixels) -> int:
-    lst = [colors[channel] for colors in pixels]
-    return round(sum(lst) / len(lst))
-
-
-def _get_avg_rgb(img) -> list[int]:
-    pixels = list(img.getdata())
-    avg_rgb = []
-    for channel in range(3):
-        avg_rgb.append(_get_avg_color(channel, pixels))
-    return avg_rgb
-
-
-# def _get_most_common_color(img) -> tuple:
-#     pixels = list(img.getdata())
-#     count_dict = {i: pixels.count(i) for i in pixels}
-#     return max(count_dict, key=count_dict.get)
-
 
 def _image_into_grid(image: PIL.Image.Image, d: int):
     w, h = image.size
@@ -81,7 +43,6 @@ def _image_into_grid(image: PIL.Image.Image, d: int):
         cropped_img = image.crop(box)
         output.append(cropped_img)
     return output
-
 
 def _remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
     rows, cols = color_matrix.shape
@@ -157,7 +118,7 @@ def _create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any,
         tiles = _image_into_grid(img, GRID_SIZE)
     rgb_list = []
     for tile in tiles:
-        most_common_color = utils._get_most_common_color(tile)
+        most_common_color = utils.get_most_common_color(tile)
         rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
     result = np.array(rgb_list, dtype=str).reshape(-1, w // GRID_SIZE)
@@ -182,5 +143,4 @@ def scan_map(file_path: str, defined_colors=None) -> DatasetV2:
     dataset = _numpy_arr_to_dataset(color_matrix)
     return dataset
 
-# debug_scan_map('../maps/Fort_Joy_Ground_Floor-1.png')
 
