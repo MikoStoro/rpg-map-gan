@@ -16,7 +16,10 @@ UWAGA: Kod jest przystosowany do wersji Tensorflow, która jest zainstalowana na
 
 ## scanner.py
 Zmienia mapy w macierze na potrzeby GANa za pomocą funkcji.
-scan_map(): tworzy tensor z całej mapy
+get_scan_map_dataset(): tworzy tensor z całej mapy
 debug_scan_map(): duplikuje mapę i nakłada na nią klasyfikację
+scan_map(): zwraca tablicę klasyfikacji terenu (color matrix)
+get_map_with_scan_overlay(): zwraca obrazek z nałożoną klasyfikacją terenu
+save_map_with_scan_overlay():  zapisuje wynik get_map_with_scan_overlay() do pliku
 serialize_map_submatrices() : dzieli mapę na kawałki  i ją serializuje
 

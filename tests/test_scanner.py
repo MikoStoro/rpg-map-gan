@@ -1,9 +1,6 @@
-from data_utils.scanner import Image, _get_closest_defined_color_symbol, _create_color_matrix, \
-    np, _remove_isolated_pixels, _sliding_window_matrices, debug_scan_map, serialize_map_submatrices, scan_map, \
-    DEFINED_COLORS
-
-
-
+from data_utils.scanner import _get_closest_defined_color_symbol, scan_map, \
+    np, _remove_isolated_pixels, _sliding_window_matrices, serialize_map_submatrices, DEFINED_COLORS, cv2, \
+    get_map_with_scan_overlay
 
 
 def test_get_closest_defined_color_symbol():
@@ -19,13 +16,13 @@ def test_get_closest_defined_color_symbol():
 def test_create_color_matrix():
     defined_colors = {(255, 0, 1): 4, (1, 255, 0): 3, (1, 0, 255): 2}
     file = "../maps/test/colored_grid.png"
-    output = _create_color_matrix(file, defined_colors)
+    output = scan_map(file, defined_colors)
 
     assert output[0][0] == '4'
-    assert output[0][45] == '3'
-    assert output[20][0] == '3'
-    assert output[40][0] == '2'
-    assert output[59][59] == '4'
+    assert output[0][len(output)-1] == '3'
+    assert output[(len(output)-1)//2][0] == '3'
+    assert output[len(output)-1][0] == '2'
+    assert output[len(output)-1][len(output[0])-1] == '4'
 
 
 def test_remove_isolated_pixels():
@@ -84,7 +81,15 @@ def test_sliding_window_submatrices():
 
 
 def test_serialize_map_submatrices():
-    original = _sliding_window_matrices(_create_color_matrix(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS))
+    original = _sliding_window_matrices(scan_map(file_path="../maps/test/colored_grid.png", defined_colors=DEFINED_COLORS))
     serialize_map_submatrices(file_path="../maps/test/colored_grid.png",defined_colors=DEFINED_COLORS)
     loaded = np.load("../maps/test/colored_grid.png.npy")
     assert np.array_equal(original,loaded)
+
+
+def test_get_map_with_scan_overlay():
+    file = "../maps/test/colored_grid.png"
+    color_grid = scan_map(file, DEFINED_COLORS)
+    img = get_map_with_scan_overlay(file,color_grid,defined_colors=DEFINED_COLORS)
+    cv2.imshow('image', img)
+    cv2.waitKey()
