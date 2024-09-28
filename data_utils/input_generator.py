@@ -64,17 +64,6 @@ def upsample_maps(map_array, scale):
    
 
 
-arr = get_maps(3)
-arr2 = upsample_maps(arr,2)
-        
-from matplotlib import pyplot as plt
-plt.imshow(arr2[0], interpolation='nearest')
-plt.show()
-plt.imshow(arr2[1], interpolation='nearest')
-plt.show()
-
-
-
 
 
 

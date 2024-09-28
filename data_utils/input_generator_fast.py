@@ -79,29 +79,6 @@ def upsample_map(input_map, scale=2):
 def upsample_maps(map_array, scale):
     return [  upsample_map(m, scale) for m in map_array  ]
     
-    '''
-arr = get_maps(3)
-arr2 = upsample_maps(arr,2)
-        
-from matplotlib import pyplot as plt
-plt.imshow(arr2[0], interpolation='nearest')
-plt.show()
-plt.imshow(arr2[1], interpolation='nearest')
-plt.show()
-
-'''
-'''upsampled =  np.kron(board, np.ones((4,4)))
-print(board.shape)
-print(board)
-
-print(upsampled.shape)
-print(upsampled)
-
-plt.imshow(upsampled, interpolation='nearest')
-plt.show()'''
-
-
-
 
 
 
