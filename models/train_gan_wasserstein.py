@@ -11,7 +11,7 @@ import discriminator_model_9x9
 
 DATASET = "datasets/dataset/dataset9x9.npy"
 IMG_DIMENSION = 9
-BATCH_SIZE = 1000
+BATCH_SIZE = 100
 
 generator_optimizer = tensorflow.keras.optimizers.RMSprop(OPTIMIZER_LR)
 discriminator_optimizer = tensorflow.keras.optimizers.RMSprop(OPTIMIZER_LR)
@@ -24,15 +24,15 @@ def print_training_progress(batch, generator_loss, discriminator_loss):
 @tensorflow.function
 def perform_train_step(real_images, generator, discriminator):
   """ Perform one training step with Gradient Tapes """
-  
-    ##train discriminator
+  tensorflow.compat.v1.enable_eager_execution()
+  ##train discriminator
   for i in range(DISC_TRAIN_RATIO):
     noise = generate_noise(BATCH_SIZE)
     with tensorflow.GradientTape() as discriminator_tape:
       generated_images = generator(noise, training=True)
       discriminated_generated_images = discriminator(generated_images, training=True)
       discriminated_real_images = discriminator(real_images, training=True)
-      discriminator_loss = -(backend.mean(discriminated_real_images) - backend.mean(discriminated_generated_images)) 
+      discriminator_loss = -(backend.mean(discriminated_real_images) - backend.mean(discriminated_generated_images))
     
     discriminator_gradients = discriminator_tape.gradient(discriminator_loss, discriminator.trainable_variables)  
     discriminator_optimizer.apply_gradients(zip(discriminator_gradients, discriminator.trainable_variables))
