@@ -1,11 +1,12 @@
 from typing import Any
 import PIL
+import cv2
 from PIL import Image, ImageDraw, ImageFilter
 from itertools import product
 import numpy as np
 from numpy import floating, ndarray, dtype
 import tensorflow as tf
-import utils
+import data_utils.utils as utils
 
 from tensorflow.python.types.data import DatasetV2
 
@@ -78,24 +79,6 @@ def _remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
                     continue
             color_matrix[i, j] = neighbor
 
-def _create_debug_map(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8) -> None:
-    if defined_colors is None:
-        defined_colors = DEFINED_COLORS
-    with _process_image(file_path).convert("RGBA") as img:
-        width, height = img.size
-        opacity = int(255 * opacity)
-        reversed_defined_colors_dict = {value: (key + (opacity,)) for key, value in defined_colors.items()}
-        overlay = Image.new("RGBA", (width, height))
-        draw = ImageDraw.Draw(overlay)
-        matrix_height, matrix_width = color_matrix.shape
-        for y in range(matrix_height):
-            for x in range(matrix_width):
-                fill = reversed_defined_colors_dict.get(color_matrix[y][x])
-                draw.rectangle((x * GRID_SIZE, y * GRID_SIZE, (x + 1) * GRID_SIZE, (y + 1) * GRID_SIZE), fill=fill)
-
-        output = Image.alpha_composite(img, overlay)
-    output.save(file_path + "debug.png")
-
 def _sliding_window_matrices(matrix, window_size=16, step_size=14, replace_value=0)  -> np.ndarray[Any, np.dtype[Any]]:
     padded_matrix = np.pad(matrix, pad_width=window_size // 2, mode='constant', constant_values=replace_value)
     submatrices = []
@@ -109,8 +92,14 @@ def _sliding_window_matrices(matrix, window_size=16, step_size=14, replace_value
 
     return np.array(submatrices)
 
+def _numpy_arr_to_dataset(arr: np.array) -> DatasetV2:
+    return tf.data.Dataset.from_tensor_slices(arr)
 
-def _create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any, np.dtype[Any]]:
+def _convert_image_to_cv_matrix(image: Image) -> cv2.typing.MatLike:
+    image_array: np.ndarray = np.array(image)
+    return cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+
+def scan_map(file_path: str, defined_colors=None) -> np.ndarray[Any, np.dtype[Any]]:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
     with _process_image(file_path) as img:
@@ -125,21 +114,34 @@ def _create_color_matrix(file_path: str, defined_colors=None) -> np.ndarray[Any,
     _remove_isolated_pixels(result)
     return result
 
+def get_map_with_scan_overlay(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8) -> cv2.typing.MatLike:
+    if defined_colors is None:
+        defined_colors = DEFINED_COLORS
+    with _process_image(file_path).convert("RGBA") as img:
+        opacity = int(255 * opacity)
+        reversed_defined_colors_dict = {value: (key + (opacity,)) for key, value in defined_colors.items()}
+        width, height = img.size
+        overlay = Image.new("RGBA", (width, height))
+        draw = ImageDraw.Draw(overlay)
+        matrix_height, matrix_width = color_matrix.shape
+        for y in range(matrix_height):
+            for x in range(matrix_width):
+                fill = reversed_defined_colors_dict.get(color_matrix[y][x])
+                draw.rectangle((x * GRID_SIZE, y * GRID_SIZE, (x + 1) * GRID_SIZE, (y + 1) * GRID_SIZE), fill=fill)
+        image = Image.alpha_composite(img, overlay)
+        return _convert_image_to_cv_matrix(image)
 
-def _numpy_arr_to_dataset(arr: np.array) -> DatasetV2:
-    return tf.data.Dataset.from_tensor_slices(arr)
-
-
-def debug_scan_map(file_path: str, defined_colors=None) -> None:
+def save_map_with_scan_overlay(file_path: str, defined_colors=None) -> None:
     color_matrix = scan_map(file_path, defined_colors)
-    _create_debug_map(file_path, color_matrix, defined_colors)
+    result = Image.fromarray(get_map_with_scan_overlay(file_path, color_matrix, defined_colors))
+    result.save(file_path + "debug.png")
 
 def serialize_map_submatrices(file_path: str, defined_colors=None, window_size=16, step_size=14, replace_value=0) -> None:
-    submatrices =  _sliding_window_matrices(_create_color_matrix(file_path, defined_colors), window_size, step_size, replace_value)
+    submatrices =  _sliding_window_matrices(scan_map(file_path, defined_colors), window_size, step_size, replace_value)
     np.save(file_path, submatrices)
 
-def scan_map(file_path: str, defined_colors=None) -> DatasetV2:
-    color_matrix = _create_color_matrix(file_path, defined_colors)
+def get_scan_map_dataset(file_path: str, defined_colors=None) -> DatasetV2:
+    color_matrix = scan_map(file_path, defined_colors)
     dataset = _numpy_arr_to_dataset(color_matrix)
     return dataset
 
