@@ -60,10 +60,14 @@ def train_gan(num_epochs, image_data, generator, discriminator):
     for batch in image_data:
       generator_loss, discriminator_loss = perform_train_step(batch, generator, discriminator)
       batch_no += 1
+      DISCRIMINATOR_LOSS.append(discriminator_loss)
+      GENERATOR_LOSS.append(generator_loss)
       # Print statistics and generate image after every n-th batch
       if batch_no % PRINT_STATS_AFTER_BATCH == 0:
         print_training_progress(batch_no, generator_loss, discriminator_loss)
         generate_image(generator, epoch_no, batch_no, IMG_DIMENSION, IMG_DIMENSION)
+        visualize_loss(epoch_no, batch_no)
+    
 
     # Save models on epoch completion.
     #####save_models(generator, discriminator, epoch_no)

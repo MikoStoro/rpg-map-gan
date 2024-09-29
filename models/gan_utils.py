@@ -7,6 +7,8 @@ import numpy as np
 from defines import *
 
 UNIQUE_RUN_ID = ""
+DISCRIMINATOR_LOSS = []
+GENERATOR_LOSS = []
 
 def generate_run_name():
   global UNIQUE_RUN_ID
@@ -84,6 +86,15 @@ def save_models(generator, discriminator, epoch):
     include_optimizer=True,
     save_format=None, 
   )
+  
+  
+def visualize_loss(epoch=0, batch=0):
+  plt.figure(figsize=(10.0,10.0))
+  plt.plot(DISCRIMINATOR_LOSS, label="discriminator loss")
+  plt.plot(GENERATOR_LOSS,label="generator loss")
+  plt.savefig(f"./runs/{UNIQUE_RUN_ID}/images/epoch{epoch}_batch{batch}_loss.jpg")
+  
+  pass
 
 def rename_layers(model, name):
   try: 
