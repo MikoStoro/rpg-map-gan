@@ -28,6 +28,15 @@ class MainWindow(QWidget):
         super().__init__(*args, **kwargs)
         self.current_image = ""
 
+        self.GRID_SIZE = None
+
+        self.slice_point_1 = None
+        self.slice_point_2 = None
+
+        self.current_slice = None
+
+        self.json_path = DEFAULT_JSON_PATH
+
         self.setWindowTitle("RPG Map Generator (Early Access)")
         self.setGeometry(100, 100, 1240, 660)
 
@@ -35,7 +44,7 @@ class MainWindow(QWidget):
         layout.setSpacing(10)
 
         self.json = QTextEdit()
-        #self.json.textChanged.connect()
+        self.json.textChanged.connect(lambda : self.save_json_file(self.json_path))
         self.open_json_file(DEFAULT_JSON_PATH)
         self.json.setFixedSize(200, 600)
         layout.addWidget(self.json, 0, 0)
@@ -118,14 +127,7 @@ class MainWindow(QWidget):
 
         #self.setMouseTracking(True)
 
-        self.GRID_SIZE = None
 
-        self.slice_point_1 = None
-        self.slice_point_2 = None
-
-        self.current_slice = None
-
-        self.json_path = DEFAULT_JSON_PATH
 
     def add_json_element(self):
         name = self.slice_name.text()
@@ -181,23 +183,6 @@ class MainWindow(QWidget):
             self.slice_point_1 = None
             self.slice_point_2 = None
        
-        
-        '''img_pix = self.input_image.pixmap()
-        label = self.input_image
-        img_pix_width = img_pix.width()
-        img_pix_heigth = img_pix.height()
-
-        label_width = label.width()
-        label_height = label.height()
-
-        scale_factor_width = label_width / img_pix_width
-        scale_factor_height = label_height / img_pix_heigth
-
-        relative_width_in_img_pix = coord_x / scale_factor_width 
-        relative_height_in_img_pix = coord_y / scale_factor_height
-
-        relative_coordinates_in_img_pix = QPoint(relative_width_in_img_pix, relative_height_in_img_pix)
-        print(relative_coordinates_in_img_pix)'''
         print(str(x) + " " + str(y))
         print(str(x_relative_to_label) + " " + str(y_relative_to_label))
         print(str(x_relative_to_pixmap) + " " + str(y_relative_to_pixmap))
@@ -232,13 +217,17 @@ class MainWindow(QWidget):
         try:
             with open(filename, 'r') as file:
                 text = file.read()
-                text.replace(",", ",\n")
-                print(text)
+                text = text.replace(',', ',\n')
                 self.json.setPlainText(text)
+
         except:
            open(filename, 'w').close()
            self.open_json_file(DEFAULT_JSON_PATH)
 
+    def save_json_file(self, filename):
+        with open(filename, "w") as f: 
+            f.write(self.json.toPlainText())
+    
     def open_json_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", "../", "Pliki .json (*json)")
         if ok:
