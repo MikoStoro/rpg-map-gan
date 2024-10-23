@@ -20,6 +20,13 @@ def create_mouse_event():
     return mouse_press_get_coords_event, coords
 
 
+def get_slice(path, x1,y1,x2,y2):
+    img = cv2.imread(path, 1)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    cropped_img = img[min(y1, y2):max(y1, y2), min(x1, x2):max(x1, x2)]
+    cropped_img = Image.fromarray(cropped_img)
+    cropped_img.show()
+
 def create_json_with_colors_and_items(path):
     img = cv2.imread(path, 1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -54,4 +61,4 @@ def create_json_with_colors_and_items(path):
         coords.clear()
 
 
-create_json_with_colors_and_items('../maps/Fort_Joy_Ground_Floor-1.png')
+#create_json_with_colors_and_items('../maps/Fort_Joy_Ground_Floor-1.png')

@@ -7,14 +7,17 @@ from PIL import Image, ImageDraw, ImageFilter
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
 from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay
 
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QPoint
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame
 import cv2
+import box_color_picker as picker
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
 DEFAULT_DIR = "./Original Sin II"
+
+
 
 
 class MainWindow(QWidget):
@@ -31,11 +34,22 @@ class MainWindow(QWidget):
 
         self.json = QTextEdit()
         self.json.setPlainText(DEFAULT_COLORS)
+        self.json.setFixedSize(200, 500)
+        layout.addWidget(self.json, 0, 0)
+
+        
+        self.slice = QLabel()
+        self.json.setPlainText(DEFAULT_COLORS)
         self.json.setFixedSize(200, 600)
         layout.addWidget(self.json, 0, 0)
 
         self.input_image = QLabel()
         self.input_image.setFixedSize(500, 600)
+        self.input_image.setPixmap(QPixmap())
+        self.input_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ##self.input_image.setMouseTracking(True)
+        self.input_image.setFrameStyle(QFrame.Shape.Box)
+            
         layout.addWidget(self.input_image, 0, 1)
 
         self.output_image = QLabel()
@@ -48,14 +62,14 @@ class MainWindow(QWidget):
         self.save_json.clicked.connect(lambda: self.save_json_dialog())
         left_button_panel.addWidget(self.save_json)
 
-        self.open_json = QPushButton("Otwórz")
+        self.open_json = QPushButton("Otwórz JSON")
         self.open_json.setFixedSize(80, 30)
         self.open_json.clicked.connect(lambda: self.open_json_dialog())
         left_button_panel.addWidget(self.open_json)
         layout.addLayout(left_button_panel, 1, 0)
 
         middle_button_panel = QHBoxLayout()
-        self.open_input = QPushButton("Otwórz")
+        self.open_input = QPushButton("Otwórz Obraz")
         self.open_input.setFixedSize(100, 30)
         self.open_input.clicked.connect(lambda: self.open_image_dialog())
         middle_button_panel.addWidget(self.open_input)
@@ -73,6 +87,13 @@ class MainWindow(QWidget):
         middle_button_panel.addWidget(self.grid_size_input)
         layout.addLayout(middle_button_panel, 1, 2)
 
+        self.color_picker_btn = QPushButton("Wybierz kolor")
+        self.color_picker_btn.setFixedSize(100, 30)
+        self.color_picker_btn.clicked.connect(lambda : self.run_color_picker())
+        middle_button_panel.addWidget(self.color_picker_btn)
+        #layout.addLayout(middle_button_panel, 1, 3)
+
+
         self.save_output = QPushButton("Fidget button")
         self.save_output.setFixedSize(100, 30)
         self.save_output.clicked.connect(lambda: self.save_image_dialog())
@@ -81,7 +102,77 @@ class MainWindow(QWidget):
         self.setLayout(layout)
         self.show()
 
+        #self.setMouseTracking(True)
+
         self.GRID_SIZE = None
+
+        self.slice_point_1 = None
+        self.slice_point_2 = None
+
+        self.current_slice = None
+
+
+    def mousePressEvent(self,e):
+
+        x = int(e.position().x())
+        y = int(e.position().y())
+        
+        print(self.save_output.text())
+        label_x = self.input_image.x() 
+        label_y = self.input_image.y()
+        label_w = self.input_image.width()
+        label_h = self.input_image.height()
+
+
+        pixmap_w = self.input_image.pixmap().width()
+        pixmap_h = self.input_image.pixmap().height()
+        pixmap_x = label_w/2 - pixmap_w/2
+        pixmap_y = label_h/2 - pixmap_h/2
+        
+        x_relative_to_label = x - label_x
+        y_relative_to_label = y - label_y
+
+        x_relative_to_pixmap = int(x_relative_to_label - pixmap_x)
+        y_relative_to_pixmap = int(y_relative_to_label - pixmap_y)
+
+        
+        if self.slice_point_1 is None:
+            self.slice_point_1 = QPoint(x_relative_to_pixmap, y_relative_to_pixmap)
+        else:
+            self.slice_point_2 = QPoint(x_relative_to_pixmap, y_relative_to_pixmap)
+            try:
+                picker.get_slice(self.current_image, 
+                             self.slice_point_1.x(), self.slice_point_1.y(), 
+                             self.slice_point_2.x(), self.slice_point_2.y())
+            except:
+                print("Invalid coordinates chosen")
+            self.slice_point_1 = None
+            self.slice_point_2 = None
+        
+        '''img_pix = self.input_image.pixmap()
+        label = self.input_image
+        img_pix_width = img_pix.width()
+        img_pix_heigth = img_pix.height()
+
+        label_width = label.width()
+        label_height = label.height()
+
+        scale_factor_width = label_width / img_pix_width
+        scale_factor_height = label_height / img_pix_heigth
+
+        relative_width_in_img_pix = coord_x / scale_factor_width 
+        relative_height_in_img_pix = coord_y / scale_factor_height
+
+        relative_coordinates_in_img_pix = QPoint(relative_width_in_img_pix, relative_height_in_img_pix)
+        print(relative_coordinates_in_img_pix)'''
+        print(str(x) + " " + str(y))
+        print(str(x_relative_to_label) + " " + str(y_relative_to_label))
+        print(str(x_relative_to_pixmap) + " " + str(y_relative_to_pixmap))
+     
+
+
+    def run_color_picker(self):
+        picker.create_json_with_colors_and_items(self.current_image)
 
     def set_grid_size(self):
         raw_input = self.grid_size_input.text().strip()
