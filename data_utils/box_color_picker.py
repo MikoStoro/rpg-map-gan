@@ -25,7 +25,20 @@ def get_slice(path, x1,y1,x2,y2):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     cropped_img = img[min(y1, y2):max(y1, y2), min(x1, x2):max(x1, x2)]
     cropped_img = Image.fromarray(cropped_img)
-    cropped_img.show()
+    #cropped_img.show()
+    return cropped_img
+
+def add_item_to_json(name, slice, path = "coords.json"):
+    rgb = utils.get_most_common_color(slice)
+    try:
+        with open(path, "r") as f:
+            colors_dict = json.load(f)
+    except:
+        colors_dict = {}
+    colors_dict[name] = rgb
+    with open(path,"w") as f:    
+        json.dump(colors_dict, f)
+
 
 def create_json_with_colors_and_items(path):
     img = cv2.imread(path, 1)

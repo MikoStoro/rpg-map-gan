@@ -9,13 +9,15 @@ from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_over
 
 from PyQt6.QtCore import QSize, Qt, QPoint
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame
+from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout
 import cv2
 import box_color_picker as picker
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
+TMP_SLICE_PATH = "./tmp_slice.png"
 DEFAULT_DIR = "./Original Sin II"
+DEFAULT_JSON_PATH = "./colors.json"
 
 
 
@@ -33,15 +35,25 @@ class MainWindow(QWidget):
         layout.setSpacing(10)
 
         self.json = QTextEdit()
-        self.json.setPlainText(DEFAULT_COLORS)
-        self.json.setFixedSize(200, 500)
+        self.open_json_file(DEFAULT_JSON_PATH)
+        self.json.setFixedSize(200, 600)
         layout.addWidget(self.json, 0, 0)
 
         
-        self.slice = QLabel()
-        self.json.setPlainText(DEFAULT_COLORS)
-        self.json.setFixedSize(200, 600)
-        layout.addWidget(self.json, 0, 0)
+        slice_manager_panel = QVBoxLayout()
+        
+        self.current_slice_label = QLabel("Slice goes here")
+        slice_manager_panel.addWidget(self.current_slice_label)
+
+        self.slice_name = QLineEdit()
+        self.slice_name.setPlaceholderText("Slice Name")
+        slice_manager_panel.addWidget(self.slice_name)
+
+        self.slice_accept = QPushButton("Zatwierdź")
+        self.slice_accept.clicked.connect(lambda : self.add_json_element())
+        slice_manager_panel.addWidget(self.slice_accept)
+
+        layout.addLayout(slice_manager_panel,0,1)
 
         self.input_image = QLabel()
         self.input_image.setFixedSize(500, 600)
@@ -50,11 +62,11 @@ class MainWindow(QWidget):
         ##self.input_image.setMouseTracking(True)
         self.input_image.setFrameStyle(QFrame.Shape.Box)
             
-        layout.addWidget(self.input_image, 0, 1)
+        layout.addWidget(self.input_image, 0, 2)
 
         self.output_image = QLabel()
         self.output_image.setFixedSize(500, 600)
-        layout.addWidget(self.output_image, 0, 2)
+        layout.addWidget(self.output_image, 0, 3)
 
         left_button_panel = QHBoxLayout()
         self.save_json = QPushButton("Zapisz")
@@ -78,9 +90,10 @@ class MainWindow(QWidget):
         self.classify.setFixedSize(100, 30)
         self.classify.clicked.connect(lambda : self.run_classify())
         middle_button_panel.addWidget(self.classify)
-        layout.addLayout(middle_button_panel, 1, 1)
+        layout.addLayout(middle_button_panel, 1, 2)
 
         self.grid_size_input = QLineEdit()
+        self.grid_size_input.setText("2")
         self.grid_size_input.setPlaceholderText("Grid Size")
         self.grid_size_input.setFixedSize(100, 30)
         self.grid_size_input.textChanged.connect(lambda : self.set_grid_size())
@@ -111,7 +124,14 @@ class MainWindow(QWidget):
 
         self.current_slice = None
 
+        self.json_path = DEFAULT_JSON_PATH
 
+    def add_json_element(self):
+        name = self.slice_name.text()
+        slice = self.current_slice
+        picker.add_item_to_json(name,slice,self.json_path)
+        self.open_json_file(self.json_path)
+    
     def mousePressEvent(self,e):
 
         x = int(e.position().x())
@@ -141,13 +161,25 @@ class MainWindow(QWidget):
         else:
             self.slice_point_2 = QPoint(x_relative_to_pixmap, y_relative_to_pixmap)
             try:
-                picker.get_slice(self.current_image, 
+                returned_slice = picker.get_slice(self.current_image, 
                              self.slice_point_1.x(), self.slice_point_1.y(), 
                              self.slice_point_2.x(), self.slice_point_2.y())
+                self.current_slice = returned_slice
+                #returned_slice.save(TMP_SLICE_PATH)
+                #self.current_slice.setPixmap(QPixmap(TMP_SLICE_PATH))
+                #print("debug")
+                
+                try:
+                    returned_slice.save(TMP_SLICE_PATH)
+                    self.current_slice_label.setPixmap(QPixmap(TMP_SLICE_PATH))
+                except Exception as e:
+                    print(e)
+
             except:
                 print("Invalid coordinates chosen")
             self.slice_point_1 = None
             self.slice_point_2 = None
+       
         
         '''img_pix = self.input_image.pixmap()
         label = self.input_image
@@ -197,13 +229,18 @@ class MainWindow(QWidget):
         else:
             print("Pallette save cancelled.")
 
+    def open_json_file(self, filename):
+        with open(filename, 'r') as file:
+            text = file.read()
+            text.replace(",", ",\n")
+            print(text)
+            self.json.setPlainText(text)
+
     def open_json_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", "../", "Pliki .json (*json)")
         if ok:
-            with open(filename, 'r') as file:
-                text = file.read()
-                print(text)
-                self.json.setPlainText(text)
+            self.json_path = filename
+            self.open_json_file(filename)
             print("Pallette opened.")
         else:
             print("Pallette open cancelled.")
