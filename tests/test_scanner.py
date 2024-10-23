@@ -1,6 +1,8 @@
-from data_utils.scanner import _get_closest_defined_color_symbol, scan_map, \
-    np, _remove_isolated_pixels, _sliding_window_matrices, serialize_map_submatrices, DEFINED_COLORS, cv2, \
-    get_map_with_scan_overlay
+import cv2
+import numpy as np
+
+from data_utils.scanner import _get_closest_defined_color_symbol, scan_map, _remove_isolated_pixels, \
+    _sliding_window_matrices, serialize_map_submatrices, DEFINED_COLORS, get_map_with_scan_overlay
 
 
 def test_get_closest_defined_color_symbol():
@@ -12,6 +14,16 @@ def test_get_closest_defined_color_symbol():
     assert _get_closest_defined_color_symbol(color1, defined_colors) == 3
     assert _get_closest_defined_color_symbol(color2, defined_colors) == 2
 
+def test_get_closest_defined_color_symbol_for_multiple_color_with_one_terrain_type():
+    defined_colors = {(255, 0, 1): 4, (1, 255, 0): 3, (1, 0, 255): 4}
+    file = "../maps/test/colored_grid.png"
+    output = scan_map(file, defined_colors)
+
+    assert output[0][0] == '4'
+    assert output[0][len(output)-1] == '3'
+    assert output[(len(output)-1)//2][0] == '3'
+    assert output[len(output)-1][0] == '4'
+    assert output[len(output)-1][len(output[0])-1] == '4'
 
 def test_create_color_matrix():
     defined_colors = {(255, 0, 1): 4, (1, 255, 0): 3, (1, 0, 255): 2}
