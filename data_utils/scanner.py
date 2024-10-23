@@ -6,7 +6,7 @@ from itertools import product
 import numpy as np
 from numpy import floating, ndarray, dtype
 import tensorflow as tf
-import data_utils.utils as utils
+import utils
 
 from tensorflow.python.types.data import DatasetV2
 
@@ -14,6 +14,7 @@ GRID_SIZE = 10  # size will probably depend on specific map
 RESIZE = 330
 MAP_PATH = "./maps"
 OUTPUT_PATH = "./output"
+
 
 DEFINED_COLORS = {
     (128, 128, 128): 'S',  # Gray for stone

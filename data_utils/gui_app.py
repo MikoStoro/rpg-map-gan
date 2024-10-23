@@ -13,6 +13,8 @@ from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGrid
 import cv2
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
+TMP_IMG_PATH = "./tmp.png"
+DEFAULT_DIR = "./Original Sin II"
 
 class MainWindow(QWidget):
     def __init__(self, *args, **kwargs):
@@ -92,7 +94,7 @@ class MainWindow(QWidget):
 
 
     def open_image_dialog(self):
-        filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", "../", "Obrazy (*.png *.jpg)")
+        filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", DEFAULT_DIR, "Obrazy (*.png *.jpg)")
         if ok:
             self.input_image.setPixmap(QPixmap(filename))
             self.current_image = filename
@@ -108,15 +110,19 @@ class MainWindow(QWidget):
         defined_colours = dict((value, key) for key, value in defined_colours.items())
         print(defined_colours)
 
-        color_matrix = scan_map(self.current_image, defined_colours)
+        color_matrix = scan_map(self.current_image, defined_colours) 
         result = Image.fromarray(get_map_with_scan_overlay(self.current_image, color_matrix, defined_colours))
-        filename, ok = QFileDialog.getSaveFileName(self, "Zapisz plik", "../", "Obrazy (*.png *.jpg)")
+
+        '''filename, ok = QFileDialog.getSaveFileName(self, "Zapisz plik", "../", "Obrazy (*.png *.jpg)")
         if ok:
             result.save(filename)
             self.output_image.setPixmap(QPixmap(filename))
             print("Result saved.")
         else:
-            print("Result save cancelled.")
+            print("Result save cancelled.")'''
+        result.save(TMP_IMG_PATH)
+        self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
+
 
     def save_image_dialog(self):
         print("POGGERS")
