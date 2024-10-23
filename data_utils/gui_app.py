@@ -9,14 +9,16 @@ from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_over
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit
 import cv2
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
 DEFAULT_DIR = "./Original Sin II"
 
+
 class MainWindow(QWidget):
+   
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.current_image = ""
@@ -64,13 +66,36 @@ class MainWindow(QWidget):
         middle_button_panel.addWidget(self.classify)
         layout.addLayout(middle_button_panel, 1, 1)
 
+        self.grid_size_input = QLineEdit()
+        self.grid_size_input.setPlaceholderText("Grid Size")
+        self.grid_size_input.setFixedSize(100, 30)
+        self.grid_size_input.textChanged.connect(lambda : self.set_grid_size())
+        middle_button_panel.addWidget(self.grid_size_input)
+        layout.addLayout(middle_button_panel, 1, 2)
+
         self.save_output = QPushButton("Fidget button")
         self.save_output.setFixedSize(100, 30)
         self.save_output.clicked.connect(lambda: self.save_image_dialog())
-        layout.addWidget(self.save_output, 1, 2)
+        layout.addWidget(self.save_output, 1, 3)
 
         self.setLayout(layout)
         self.show()
+
+        self.GRID_SIZE = None
+
+    def set_grid_size(self):
+        raw_input = self.grid_size_input.text().strip()
+        if raw_input is None or raw_input == "":
+            self.GRID_SIZE = None
+        try:
+            grid_size = int(raw_input)
+            self.GRID_SIZE = grid_size
+            print("Grid size changed: " + str(self.GRID_SIZE))
+        except:
+            self.grid_size_input.clear()
+            self.GRID_SIZE = None
+
+
 
     def save_json_dialog(self):
         filename, ok = QFileDialog.getSaveFileName(self, "Zapisz plik", "../", "Pliki .json (*json)")
@@ -110,8 +135,8 @@ class MainWindow(QWidget):
         defined_colours = dict((value, key) for key, value in defined_colours.items())
         print(defined_colours)
 
-        color_matrix = scan_map(self.current_image, defined_colours) 
-        result = Image.fromarray(get_map_with_scan_overlay(self.current_image, color_matrix, defined_colours))
+        color_matrix = scan_map(self.current_image, defined_colours, grid_size=self.GRID_SIZE) 
+        result = Image.fromarray(get_map_with_scan_overlay(self.current_image, color_matrix, defined_colours, grid_size=self.GRID_SIZE))
 
         '''filename, ok = QFileDialog.getSaveFileName(self, "Zapisz plik", "../", "Obrazy (*.png *.jpg)")
         if ok:

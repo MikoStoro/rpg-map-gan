@@ -100,18 +100,20 @@ def _convert_image_to_cv_matrix(image: Image) -> cv2.typing.MatLike:
     image_array: np.ndarray = np.array(image)
     return cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
 
-def scan_map(file_path: str, defined_colors=None) -> np.ndarray[Any, np.dtype[Any]]:
+def scan_map(file_path: str, defined_colors=None, grid_size = None) -> np.ndarray[Any, np.dtype[Any]]:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
+    if grid_size is None:
+        grid_size = GRID_SIZE
     with _process_image(file_path) as img:
         w, h = img.size
-        tiles = _image_into_grid(img, GRID_SIZE)
+        tiles = _image_into_grid(img, grid_size)
     rgb_list = []
     for tile in tiles:
         most_common_color = utils.get_most_common_color(tile)
         rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
-    result = np.array(rgb_list, dtype=str).reshape(-1, w // GRID_SIZE)
+    result = np.array(rgb_list, dtype=str).reshape(-1, w // grid_size)
     _remove_isolated_pixels(result)
     return result
 
