@@ -1,5 +1,5 @@
 import sys
-
+import utils
 import json
 import PIL
 from PIL import Image, ImageDraw, ImageFilter
@@ -35,6 +35,7 @@ class MainWindow(QWidget):
         layout.setSpacing(10)
 
         self.json = QTextEdit()
+        #self.json.textChanged.connect()
         self.open_json_file(DEFAULT_JSON_PATH)
         self.json.setFixedSize(200, 600)
         layout.addWidget(self.json, 0, 0)
@@ -218,8 +219,6 @@ class MainWindow(QWidget):
             self.grid_size_input.clear()
             self.GRID_SIZE = None
 
-
-
     def save_json_dialog(self):
         filename, ok = QFileDialog.getSaveFileName(self, "Zapisz plik", "../", "Pliki .json (*json)")
         if ok:
@@ -230,11 +229,15 @@ class MainWindow(QWidget):
             print("Pallette save cancelled.")
 
     def open_json_file(self, filename):
-        with open(filename, 'r') as file:
-            text = file.read()
-            text.replace(",", ",\n")
-            print(text)
-            self.json.setPlainText(text)
+        try:
+            with open(filename, 'r') as file:
+                text = file.read()
+                text.replace(",", ",\n")
+                print(text)
+                self.json.setPlainText(text)
+        except:
+           open(filename, 'w').close()
+           self.open_json_file(DEFAULT_JSON_PATH)
 
     def open_json_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", "../", "Pliki .json (*json)")
@@ -255,13 +258,15 @@ class MainWindow(QWidget):
         else:
             print("Image open cancelled.")
 
+
     def run_classify(self):
         print("Classification started.")
         defined_colours = json.loads(str(self.json.toPlainText()))
-        for name in defined_colours.keys():
-            defined_colours[name] = tuple(defined_colours[name])
-        defined_colours = dict((value, key) for key, value in defined_colours.items())
-        print(defined_colours)
+        #for name in defined_colours.keys():
+        #    defined_colours[name] = tuple(defined_colours[name])
+        #defined_colours = dict((value, key) for key, value in defined_colours.items())
+        defined_colours = utils.translate_json_to_colors_dict(defined_colours)
+        print("defined colors" + str(defined_colours))
 
         color_matrix = scan_map(self.current_image, defined_colours, grid_size=self.GRID_SIZE) 
         result = Image.fromarray(get_map_with_scan_overlay(self.current_image, color_matrix, defined_colours, grid_size=self.GRID_SIZE))

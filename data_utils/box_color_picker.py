@@ -28,14 +28,19 @@ def get_slice(path, x1,y1,x2,y2):
     #cropped_img.show()
     return cropped_img
 
+
 def add_item_to_json(name, slice, path = "coords.json"):
     rgb = utils.get_most_common_color(slice)
     try:
         with open(path, "r") as f:
             colors_dict = json.load(f)
-    except:
+            colors_dict = utils.translate_json_to_colors_dict(colors_dict)
+    except Exception as e:
+        print(e)
         colors_dict = {}
-    colors_dict[name] = rgb
+    colors_dict[rgb] = name
+    print("Colors_dict: " + str(colors_dict))
+    colors_dict = utils.translate_colors_dict_to_json(colors_dict)
     with open(path,"w") as f:    
         json.dump(colors_dict, f)
 

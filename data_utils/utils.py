@@ -21,3 +21,26 @@ def int_to_rgb(value: int) -> tuple:
     green = (value >> 8) & 0xFF
     blue = value & 0xFF
     return red, green, blue
+
+def translate_colors_dict_to_json(dictionary: dict):
+    new_dict = {}
+    for key,value in dictionary.items():
+        print("dict to json: dict key:  " + str(key) )
+        key = list(key)
+        print("new key:" + str(key))
+        newKey = str(key[0]) + " " + str(key[1]) + " " + str(key[2])
+        print("dict to json: json key:  " + str(newKey) )
+        new_dict[newKey] = value
+    return new_dict
+
+def translate_json_to_colors_dict(json_dict : dict):
+    new_dict = {}
+    for key,value in json_dict.items():
+        print("json to dict: json key:" + key)
+        newKey = str(key).split(" ")
+
+        newKey = tuple([int(x) for x in newKey])
+        print(newKey)
+        print("json to dict: dict key:" + str(newKey))
+        new_dict[newKey] = value
+    return new_dict
