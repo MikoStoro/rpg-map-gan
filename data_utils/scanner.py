@@ -115,9 +115,11 @@ def scan_map(file_path: str, defined_colors=None) -> np.ndarray[Any, np.dtype[An
     _remove_isolated_pixels(result)
     return result
 
-def get_map_with_scan_overlay(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8) -> cv2.typing.MatLike:
+def get_map_with_scan_overlay(file_path: str, color_matrix: ndarray[Any, dtype[Any]], defined_colors=None, opacity=0.8, grid_size = None) -> cv2.typing.MatLike:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
+    if grid_size is None:
+        grid_size = GRID_SIZE
     with _process_image(file_path).convert("RGBA") as img:
         opacity = int(255 * opacity)
         reversed_defined_colors_dict = {value: (key + (opacity,)) for key, value in defined_colors.items()}
@@ -128,7 +130,7 @@ def get_map_with_scan_overlay(file_path: str, color_matrix: ndarray[Any, dtype[A
         for y in range(matrix_height):
             for x in range(matrix_width):
                 fill = reversed_defined_colors_dict.get(color_matrix[y][x])
-                draw.rectangle((x * GRID_SIZE, y * GRID_SIZE, (x + 1) * GRID_SIZE, (y + 1) * GRID_SIZE), fill=fill)
+                draw.rectangle((x * grid_size, y * grid_size, (x + 1) * grid_size, (y + 1) * grid_size), fill=fill)
         image = Image.alpha_composite(img, overlay)
         return _convert_image_to_cv_matrix(image)
 
