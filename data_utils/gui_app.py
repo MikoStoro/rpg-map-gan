@@ -111,6 +111,7 @@ class MainWindow(QWidget):
         self.grid_size_input.setPlaceholderText("Grid Size")
         self.grid_size_input.setFixedSize(100, 30)
         self.grid_size_input.textChanged.connect(lambda : self.set_grid_size())
+        self.set_grid_size()
         middle_button_panel.addWidget(self.grid_size_input)
         layout.addLayout(middle_button_panel, 1, 2)
 
@@ -267,10 +268,10 @@ class MainWindow(QWidget):
         print("defined colors" + str(defined_colours))
 
         label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=self.GRID_SIZE) 
-        
-
-
-        map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.5, grid_size=self.GRID_SIZE)
+        print("label matrix size: " + str(label_matrix.shape))
+      
+        map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.5, grid_size=1)
+        print("original image size: " + str(map_with_overlay.shape))
         result = Image.fromarray(map_with_overlay)
         self.current_result = label_matrix
         result.save(TMP_IMG_PATH)

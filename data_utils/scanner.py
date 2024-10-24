@@ -105,7 +105,7 @@ def _convert_image_to_cv_matrix(image: Image) -> cv2.typing.MatLike:
     image_array: np.ndarray = np.array(image)
     return cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
 
-def scan_map(file_path: str, defined_colors=None, grid_size = None, resize = True) -> np.ndarray[Any, np.dtype[Any]]:
+def scan_map(file_path: str, defined_colors=None, grid_size = None, resize = True, keep_original_size = True) -> np.ndarray[Any, np.dtype[Any]]:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
     if grid_size is None:
@@ -119,7 +119,8 @@ def scan_map(file_path: str, defined_colors=None, grid_size = None, resize = Tru
         rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
     result = np.array(rgb_list, dtype=str).reshape(-1, w // grid_size)
-    result = np.repeat(result, 2, axis=1).repeat(2, axis=0)
+    if keep_original_size:
+        result = np.repeat(result, 2 * grid_size, axis=1).repeat(2  * grid_size, axis=0)
     _remove_isolated_pixels(result)
     return result
 
