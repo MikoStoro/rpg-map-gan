@@ -24,8 +24,13 @@ DEFINED_COLORS = {
     (50, 140, 50): 'G'  # Green for grass
 }
 
-def _process_image(file_path):
-    return Image.open(file_path).resize((RESIZE, RESIZE)).filter(ImageFilter.BLUR)
+def _process_image(file_path, resize = True, blur = True):
+    img = Image.open(file_path)
+    if resize:
+        img = img.resize((img.width//2, img.height//2))
+    if blur:
+        img = img.filter(ImageFilter.BLUR)
+    return img
 
 def _get_closest_defined_color_symbol(color: tuple, defined_colors: dict) -> str:
     distances = {_get_rgb_distance(color, k): k for k in defined_colors.keys()}
@@ -100,12 +105,12 @@ def _convert_image_to_cv_matrix(image: Image) -> cv2.typing.MatLike:
     image_array: np.ndarray = np.array(image)
     return cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
 
-def scan_map(file_path: str, defined_colors=None, grid_size = None) -> np.ndarray[Any, np.dtype[Any]]:
+def scan_map(file_path: str, defined_colors=None, grid_size = None, resize = True) -> np.ndarray[Any, np.dtype[Any]]:
     if defined_colors is None:
         defined_colors = DEFINED_COLORS
     if grid_size is None:
         grid_size = GRID_SIZE
-    with _process_image(file_path) as img:
+    with _process_image(file_path, resize) as img:
         w, h = img.size
         tiles = _image_into_grid(img, grid_size)
     rgb_list = []
@@ -114,6 +119,7 @@ def scan_map(file_path: str, defined_colors=None, grid_size = None) -> np.ndarra
         rgb_list.append(_get_closest_defined_color_symbol(most_common_color, defined_colors))
 
     result = np.array(rgb_list, dtype=str).reshape(-1, w // grid_size)
+    result = np.repeat(result, 2, axis=1).repeat(2, axis=0)
     _remove_isolated_pixels(result)
     return result
 
@@ -122,7 +128,7 @@ def get_map_with_scan_overlay(file_path: str, color_matrix: ndarray[Any, dtype[A
         defined_colors = DEFINED_COLORS
     if grid_size is None:
         grid_size = GRID_SIZE
-    with _process_image(file_path).convert("RGBA") as img:
+    with _process_image(file_path, resize=False).convert("RGBA") as img:
         opacity = int(255 * opacity)
         reversed_defined_colors_dict = {value: (key + (opacity,)) for key, value in defined_colors.items()}
         width, height = img.size
@@ -133,6 +139,7 @@ def get_map_with_scan_overlay(file_path: str, color_matrix: ndarray[Any, dtype[A
             for x in range(matrix_width):
                 fill = reversed_defined_colors_dict.get(color_matrix[y][x])
                 draw.rectangle((x * grid_size, y * grid_size, (x + 1) * grid_size, (y + 1) * grid_size), fill=fill)
+        overlay.save("./tmp_overlay.png")
         image = Image.alpha_composite(img, overlay)
         return _convert_image_to_cv_matrix(image)
 

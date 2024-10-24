@@ -1,8 +1,8 @@
 import sys
 import utils
 import json
-import PIL
 from PIL import Image, ImageDraw, ImageFilter
+import numpy as np
 
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
 from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay
@@ -17,16 +17,16 @@ DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [5
 TMP_IMG_PATH = "./tmp.png"
 TMP_SLICE_PATH = "./tmp_slice.png"
 DEFAULT_DIR = "./Original Sin II"
-DEFAULT_JSON_PATH = "./colors.json"
+DEFAULT_JSON_PATH = "./tmp.json"
 
-
+import matplotlib.pyplot as plt
 
 
 class MainWindow(QWidget):
    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_image = ""
+        self.current_image_path = ""
 
         self.GRID_SIZE = None
 
@@ -34,6 +34,9 @@ class MainWindow(QWidget):
         self.slice_point_2 = None
 
         self.current_slice = None
+
+        self.current_image = None
+        self.current_result = None
 
         self.json_path = DEFAULT_JSON_PATH
 
@@ -45,7 +48,7 @@ class MainWindow(QWidget):
 
         self.json = QTextEdit()
         self.json.textChanged.connect(lambda : self.save_json_file(self.json_path))
-        self.open_json_file(DEFAULT_JSON_PATH)
+        self.load_tmp_json()
         self.json.setFixedSize(200, 600)
         layout.addWidget(self.json, 0, 0)
 
@@ -76,6 +79,7 @@ class MainWindow(QWidget):
 
         self.output_image = QLabel()
         self.output_image.setFixedSize(500, 600)
+        self.output_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.output_image, 0, 3)
 
         left_button_panel = QHBoxLayout()
@@ -127,7 +131,12 @@ class MainWindow(QWidget):
 
         #self.setMouseTracking(True)
 
-
+    def load_tmp_json(self):
+        try:
+            self.open_json_file(DEFAULT_JSON_PATH)
+        except:
+            open(DEFAULT_JSON_PATH, "w").close()
+            self.open_json_file(DEFAULT_JSON_PATH)
 
     def add_json_element(self):
         name = self.slice_name.text()
@@ -164,7 +173,7 @@ class MainWindow(QWidget):
         else:
             self.slice_point_2 = QPoint(x_relative_to_pixmap, y_relative_to_pixmap)
             try:
-                returned_slice = picker.get_slice(self.current_image, 
+                returned_slice = picker.get_slice(self.current_image_path, 
                              self.slice_point_1.x(), self.slice_point_1.y(), 
                              self.slice_point_2.x(), self.slice_point_2.y())
                 self.current_slice = returned_slice
@@ -190,7 +199,7 @@ class MainWindow(QWidget):
 
 
     def run_color_picker(self):
-        picker.create_json_with_colors_and_items(self.current_image)
+        picker.create_json_with_colors_and_items(self.current_image_path)
 
     def set_grid_size(self):
         raw_input = self.grid_size_input.text().strip()
@@ -218,11 +227,12 @@ class MainWindow(QWidget):
             with open(filename, 'r') as file:
                 text = file.read()
                 text = text.replace(',', ',\n')
+                text = text.replace('\n\n', '\n')
                 self.json.setPlainText(text)
 
         except:
            open(filename, 'w').close()
-           self.open_json_file(DEFAULT_JSON_PATH)
+           self.open_json_file(filename)
 
     def save_json_file(self, filename):
         with open(filename, "w") as f: 
@@ -242,7 +252,9 @@ class MainWindow(QWidget):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", DEFAULT_DIR, "Obrazy (*.png *.jpg)")
         if ok:
             self.input_image.setPixmap(QPixmap(filename))
-            self.current_image = filename
+            self.current_image_path = filename
+            self.current_image = np.asarray(Image.open(filename))
+ 
             print("Image opened.")
         else:
             print("Image open cancelled.")
@@ -251,29 +263,21 @@ class MainWindow(QWidget):
     def run_classify(self):
         print("Classification started.")
         defined_colours = json.loads(str(self.json.toPlainText()))
-        #for name in defined_colours.keys():
-        #    defined_colours[name] = tuple(defined_colours[name])
-        #defined_colours = dict((value, key) for key, value in defined_colours.items())
         defined_colours = utils.translate_json_to_colors_dict(defined_colours)
         print("defined colors" + str(defined_colours))
 
-        color_matrix = scan_map(self.current_image, defined_colours, grid_size=self.GRID_SIZE) 
-        result = Image.fromarray(get_map_with_scan_overlay(self.current_image, color_matrix, defined_colours, grid_size=self.GRID_SIZE))
+        label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=self.GRID_SIZE) 
+        
 
-        '''filename, ok = QFileDialog.getSaveFileName(self, "Zapisz plik", "../", "Obrazy (*.png *.jpg)")
-        if ok:
-            result.save(filename)
-            self.output_image.setPixmap(QPixmap(filename))
-            print("Result saved.")
-        else:
-            print("Result save cancelled.")'''
+
+        map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.5, grid_size=self.GRID_SIZE)
+        result = Image.fromarray(map_with_overlay)
+        self.current_result = label_matrix
         result.save(TMP_IMG_PATH)
         self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
 
-
     def save_image_dialog(self):
         print("POGGERS")
-
 
 if __name__ == "__main__":
     print("Starting...")
