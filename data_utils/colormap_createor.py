@@ -21,8 +21,8 @@ kelly_colors = dict(vivid_yellow=(255, 179, 0),
                     deep_yellowish_brown=(89, 51, 21),
                     vivid_reddish_orange=(241, 58, 19),
                     dark_olive_green=(35, 44, 22))
-#labels_path = "./labels.txt"
-labels_path = "./data_utils/labels.txt"
+labels_path = "./labels.txt"
+labels_path2 = "./data_utils/labels.txt"
 def get_single_color_dict(index):
     #ret = {}
     ret = []
@@ -39,10 +39,14 @@ def vec_translate(a, my_dict):
    return np.vectorize(my_dict.__getitem__)(a)
 
 def get_colormap(label_matrix: np.ndarray):
-    with open(labels_path, "r") as f:
-        labels = f.readlines()
-        labels = [ x.strip() for x in labels ]
-        print(labels)
+    try:
+        file = open(labels_path)
+    except:
+        file = open(labels_path2)
+
+    labels = file.readlines()
+    file.close()
+    labels = [ x.strip() for x in labels ]
     
     label_color_r = {}
     label_color_g = {}
@@ -54,7 +58,6 @@ def get_colormap(label_matrix: np.ndarray):
         label_color_b[label] = kelly_colors_b[i]
        
     colormap_r = vec_translate(label_matrix,label_color_r)
-    print("R" + str(colormap_r))
     colormap_g = vec_translate(label_matrix,label_color_g)
     colormap_b = vec_translate(label_matrix,label_color_b)
     return np.dstack((colormap_r,colormap_g,colormap_b)).astype(np.uint8)  

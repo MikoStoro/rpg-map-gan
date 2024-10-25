@@ -98,6 +98,20 @@ def _sliding_window_matrices(matrix, window_size=16, step_size=14, replace_value
 
     return np.array(submatrices)
 
+def dual_sliding_window_matrices_no_padding(matrix1, matrix2, window_size=16, step_size=14)  -> np.ndarray[Any, np.dtype[Any]]:
+    submatrices1 = []
+    submatrices2 = []
+    range_indices_x = range(0, min(matrix1.shape[0], matrix2.shape[0])-window_size, step_size)
+    range_indices_y = range(0, min(matrix1.shape[1], matrix2.shape[1])-window_size, step_size)
+    for x in range_indices_x:
+        for y in range_indices_y:
+            submatrix = matrix1[x:x + window_size, y:y + window_size]
+            submatrices1.append(submatrix)
+            submatrix = matrix2[x:x + window_size, y:y + window_size]
+            submatrices2.append(submatrix)
+
+    return np.array(submatrices1), np.array(submatrices2)
+
 def _numpy_arr_to_dataset(arr: np.array) -> DatasetV2:
     return tf.data.Dataset.from_tensor_slices(arr)
 

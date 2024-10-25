@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
-from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay
+from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay, dual_sliding_window_matrices_no_padding
 
 from PyQt6.QtCore import QSize, Qt, QPoint
 from PyQt6.QtGui import QPixmap, QImage
@@ -297,10 +297,30 @@ class MainWindow(QWidget):
         name = Path(self.current_image_path).stem
         image_name = results_directory + "/" + name + "_ORIGINAL"
         colormap_name = results_directory + "/" + name + "_COLORMAP"
-        colormap = colormap_createor.get_colormap(self.current_result)
+
+        defined_colours = json.loads(str(self.json.toPlainText()))
+        defined_colours = utils.translate_json_to_colors_dict(defined_colours)
+        label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=1) 
+        print("SAVED DIMS")
+        print(self.current_image.shape)
+        colormap = colormap_createor.get_colormap(label_matrix)
+        print(colormap.shape)
         Image.fromarray(colormap).save("./tmp_colormap.png")
         np.save(image_name, self.current_image)
         np.save(colormap_name, colormap)
+
+        orig_slices, colormap_slices = dual_sliding_window_matrices_no_padding(self.current_image, colormap, window_size=256, step_size=16)
+        print("SLICES")
+        print(orig_slices.shape)
+        print(colormap_slices.shape)
+        for i in range(len(orig_slices)):
+            np.save(image_name + "_" + str(i), orig_slices[i])
+        for i in range(len(colormap_slices)):
+            np.save(colormap_name + "_" + str(i), colormap_slices[i])
+        
+            
+
+        
 
 
 if __name__ == "__main__":
