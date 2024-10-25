@@ -3,6 +3,7 @@ import utils
 import json
 from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
+import os
 
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
 from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay
@@ -13,6 +14,8 @@ from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGrid
 import cv2
 import box_color_picker as picker
 import colormap_createor
+from pathlib import Path
+
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
@@ -84,7 +87,7 @@ class MainWindow(QWidget):
         layout.addWidget(self.output_image, 0, 3)
 
         left_button_panel = QHBoxLayout()
-        self.save_json = QPushButton("Zapisz")
+        self.save_json = QPushButton("Zapisz JSON")
         self.save_json.setFixedSize(80, 30)
         self.save_json.clicked.connect(lambda: self.save_json_dialog())
         left_button_panel.addWidget(self.save_json)
@@ -123,7 +126,7 @@ class MainWindow(QWidget):
         #layout.addLayout(middle_button_panel, 1, 3)
 
 
-        self.save_output = QPushButton("Fidget button")
+        self.save_output = QPushButton("Zapisz wynik")
         self.save_output.setFixedSize(100, 30)
         self.save_output.clicked.connect(lambda: self.save_image_dialog())
         layout.addWidget(self.save_output, 1, 3)
@@ -256,7 +259,7 @@ class MainWindow(QWidget):
             self.input_image.setPixmap(QPixmap(filename))
             self.current_image_path = filename
             self.current_image = np.asarray(Image.open(filename))
- 
+            self.current_result = None
             print("Image opened.")
         else:
             print("Image open cancelled.")
@@ -271,9 +274,9 @@ class MainWindow(QWidget):
         label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=self.GRID_SIZE) 
         print("label matrix size: " + str(label_matrix.shape))
         print(label_matrix)
-        colormap = colormap_createor.get_colormap(label_matrix)
+       
         #print(colormap.shape)
-        Image.fromarray(colormap).save("./tmp_colormap.png")
+       
         
         map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.5, grid_size=1)
         print("original image size: " + str(map_with_overlay.shape))
@@ -283,7 +286,22 @@ class MainWindow(QWidget):
         self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
 
     def save_image_dialog(self):
-        print("POGGERS")
+        if self.current_image is None:
+            print("CHOOSE IMAGE FIRST")
+            return
+        if self.current_result is None:
+            print("GENERATE RESULT FIRST")
+            return
+        results_directory = "./results"
+        os.makedirs(results_directory, exist_ok=True)
+        name = Path(self.current_image_path).stem
+        image_name = results_directory + "/" + name + "_ORIGINAL"
+        colormap_name = results_directory + "/" + name + "_COLORMAP"
+        colormap = colormap_createor.get_colormap(self.current_result)
+        Image.fromarray(colormap).save("./tmp_colormap.png")
+        np.save(image_name, self.current_image)
+        np.save(colormap_name, colormap)
+
 
 if __name__ == "__main__":
     print("Starting...")

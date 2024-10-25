@@ -153,6 +153,10 @@ def serialize_map_submatrices(file_path: str, defined_colors=None, window_size=1
     submatrices =  _sliding_window_matrices(scan_map(file_path, defined_colors), window_size, step_size, replace_value)
     np.save(file_path, submatrices)
 
+def serialize_map_submatrices_no_scan(matrix: np.ndarray, defined_colors=None, window_size=256, step_size=32, replace_value=0) -> None:
+    submatrices =  _sliding_window_matrices(matrix, window_size, step_size, replace_value)
+    return submatrices
+
 def get_scan_map_dataset(file_path: str, defined_colors=None) -> DatasetV2:
     color_matrix = scan_map(file_path, defined_colors)
     dataset = _numpy_arr_to_dataset(color_matrix)
