@@ -12,6 +12,7 @@ from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout
 import cv2
 import box_color_picker as picker
+import colormap_createor
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
@@ -269,7 +270,11 @@ class MainWindow(QWidget):
 
         label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=self.GRID_SIZE) 
         print("label matrix size: " + str(label_matrix.shape))
-      
+        print(label_matrix)
+        colormap = colormap_createor.get_colormap(label_matrix)
+        #print(colormap.shape)
+        Image.fromarray(colormap).save("./tmp_colormap.png")
+        
         map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.5, grid_size=1)
         print("original image size: " + str(map_with_overlay.shape))
         result = Image.fromarray(map_with_overlay)

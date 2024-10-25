@@ -1,0 +1,13 @@
+grass
+plant
+stone
+metal
+magic
+sand
+wood
+wood_manmade
+stone_manmade
+roof
+water
+lava
+none
