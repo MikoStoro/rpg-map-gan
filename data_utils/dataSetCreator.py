@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 import numpy as np
 from matplotlib import pyplot as plt
-DATA_PATH = "D:\\repos\\Github\\rpg-map-gan\\data_utils\\results\\"
+DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/data_utils/results/"
 
 def get_core_filenames():
     res = []
@@ -71,7 +71,7 @@ def create_dataset(inputs, targets):
 def save_dataset(dataset, path):
     dataset.save(path)
 #test_images(inputs,targets)
-inputs, targets = extract_arrays(name_filter=["Fort_Joy_Exterior"], limit = 100)
+inputs, targets = extract_arrays(name_filter=["Fort_Joy_Exterior"])
 #np.save("./fort_joy_dataset", np.array((inputs,targets)))
 np.save("./fort_joy_dataset_100_inputs", inputs)
 np.save("./fort_joy_dataset_100_targets", targets)

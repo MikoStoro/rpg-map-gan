@@ -2,3 +2,6 @@ data_utils/dungeons/*
 maps/dungeons/*
 *.npy
 runs/*
+train_logsfit
+*.pyc
+.vscode/*
