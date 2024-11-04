@@ -5,3 +5,6 @@ runs/*
 train_logsfit
 *.pyc
 .vscode/*
+train_logsfit/*
+output/*
+training_checkpoints/*

@@ -1,9 +1,15 @@
 import tensorflow as tf
 from gan_utils import *
+import sys
+# caution: path[0] is reserved for script path (or '' in REPL)
+sys.path.insert(1, '/home/mikostoro/Documents/GitHub/rpg-map-gan/data_utils')
 #import data_utils.dataSetCreator as dataCreator
+import input_generator as input_generator
 import pix_disc_model_256 as disc
 import pix_gen_model_256 as gen
 import time
+
+
 
 LAMBDA = 100
 loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
@@ -99,6 +105,9 @@ def train_step(input_image, target, step):
     tf.summary.scalar('gen_l1_loss', gen_l1_loss, step=step//1000)
     tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
 
+def normalize(img):
+    img = (img / 127.5) - 1
+    return img
 
 def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
 
@@ -113,6 +122,8 @@ def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
 
       start = time.time()
       example_input, example_target = next(iter(dataset_test.shuffle(buffer_size=10, reshuffle_each_iteration=True).batch(1).take(1)))
+      fake_input = next(iter(tf.data.Dataset.from_tensor_slices([normalize(input_generator.get_input())]).batch(1).take(1)))
+      generate_images(generator, fake_input, example_target)
       generate_images(generator, example_input, example_target)
       print(f"Step: {step//1000}k")
 

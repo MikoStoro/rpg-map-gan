@@ -1,11 +1,12 @@
 import random
 import numpy as np
-
+from colormap_createor import get_colormap
 file = open("/home/mikostoro/Documents/GitHub/rpg-map-gan/data_utils/labels.txt")
 
-#labels = file.readlines()
-#file.close()
-#labels = [ x.strip() for x in labels ]
+labels = file.readlines()
+file.close()
+labels = [ x.strip() for x in labels ]
+print(labels)
 
 class Point:
     
@@ -39,11 +40,11 @@ def get_map(x=128,y=128,points=5,classes=5):
     y_dim = y
     
     
-    board = np.zeros((x_dim,y_dim))
+    board = np.full((x_dim,y_dim), "" , dtype=object)
     active_points = []
     for i in range(num_of_points):
-        active_points += Point(np.random.randint(1,num_of_calsses+1),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
-        #active_points += Point(np.random.choice(labels),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
+        #active_points += Point(np.random.randint(1,num_of_calsses+1),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
+        active_points += Point(np.random.choice(labels),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
 
     while len(active_points) > 0:
         current_index = np.random.randint(len(active_points))
@@ -53,7 +54,7 @@ def get_map(x=128,y=128,points=5,classes=5):
         
         if x >= 0 and x < x_dim and \
         y >= 0 and y < y_dim \
-        and board[x][y] == 0:
+        and board[x][y] == "":
             board[x][y] = current_point.value
             active_points += current_point.get_children()
         active_points.pop(current_index)
@@ -68,8 +69,10 @@ def upsample_map(input_map, scale=2):
 
 def upsample_maps(map_array, scale):
     return [  upsample_map(m, scale) for m in map_array  ]
-   
-print(get_map(x=256,y=256,points=5,classes=5))
+
+def get_input():
+    return get_colormap(get_map(x=256,y=256,points=5,classes=5))
+
 
 
 

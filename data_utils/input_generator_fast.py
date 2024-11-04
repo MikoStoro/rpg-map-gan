@@ -78,7 +78,6 @@ def upsample_map(input_map, scale=2):
 
 def upsample_maps(map_array, scale):
     return [  upsample_map(m, scale) for m in map_array  ]
-    
 
 
 
