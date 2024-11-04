@@ -8,9 +8,12 @@ import time
 LAMBDA = 100
 loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
-input_dataset = np.load("./fort_joy_dataset_100_inputs.npy")
-target_dataset = np.load("./fort_joy_dataset_100_targets.npy")
-dataset = tf.data.Dataset.from_tensor_slices((input_dataset, target_dataset))
+input_dataset_train = np.load("./fort_joy_dataset_inputs_train.npy")
+target_dataset_train = np.load("./fort_joy_dataset_targets_train.npy")
+input_dataset_test = np.load("./fort_joy_dataset_inputs_test.npy")
+target_dataset_test = np.load("./fort_joy_dataset_targets_test.npy")
+dataset_train = tf.data.Dataset.from_tensor_slices((input_dataset_train, target_dataset_train))
+dataset_test = tf.data.Dataset.from_tensor_slices((input_dataset_test, target_dataset_test))
 IMG_DIMENSION = 9
 BATCH_SIZE = 1
 log_dir = "./train_logs"
@@ -34,7 +37,7 @@ checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                 generator=generator,
                                 discriminator=discriminator)
 
-def generate_images(model, test_input, tar):
+def generate_images(model, test_input, tar, display = False):
   prediction = model(test_input, training=True)
   plt.figure(figsize=(15, 15))
 
@@ -47,7 +50,11 @@ def generate_images(model, test_input, tar):
     # Getting the pixel values in the [0, 1] range to plot.
     plt.imshow(display_list[i] * 0.5 + 0.5)
     plt.axis('off')
-  plt.show()
+  if display:
+    plt.show()
+  else:
+    filename = "output/tarining_output_" + str(time.time()) + ".png"
+    plt.savefig(filename)
 
 def generator_loss(disc_generated_output, gen_output, target):
   gan_loss = loss_object(tf.ones_like(disc_generated_output), disc_generated_output)
@@ -93,21 +100,21 @@ def train_step(input_image, target, step):
     tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
 
 
-def fit(dataset : tf.data.Dataset, steps):
-  #example_input, example_target = next(iter(train_ds.take(1)))
+def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
+
   start = time.time()
 
-  for step, (input_image, target) in dataset.repeat().batch(1).take(steps).enumerate():
-    if (step) % 100 == 0:
+  for step, (input_image, target) in dataset.shuffle(buffer_size=10).repeat().batch(1).take(steps).enumerate():
+    if (step) % 1000 == 0:
       #display.clear_output(wait=True)
 
       if step != 0:
-        print(f'Time taken for 100 steps: {time.time()-start:.2f} sec\n')
+        print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
 
       start = time.time()
-
-      generate_images(generator, input_image, target)
-      print(f"Step: {step//10}k")
+      example_input, example_target = next(iter(dataset_test.shuffle(buffer_size=10, reshuffle_each_iteration=True).batch(1).take(1)))
+      generate_images(generator, example_input, example_target)
+      print(f"Step: {step//1000}k")
 
     train_step(input_image, target, step)
 
@@ -121,6 +128,6 @@ def fit(dataset : tf.data.Dataset, steps):
       checkpoint.save(file_prefix=checkpoint_prefix)
 
 
-fit(dataset, steps=40000)
+fit(dataset_train, dataset_test, steps=40000)
 
 #run_gan()
