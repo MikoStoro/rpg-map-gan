@@ -37,6 +37,8 @@ def _get_closest_defined_color_symbol(color: tuple, defined_colors: dict) -> str
     return defined_colors.get(distances.get(min(distances.keys())))
 
 def _get_rgb_distance(a: tuple, b: tuple) -> floating[Any]:
+    while len(a) > 3:
+        a =  a[:-1]
     point1 = np.array(a)
     point2 = np.array(b)
     return np.linalg.norm(point1 - point2)

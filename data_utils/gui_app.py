@@ -44,6 +44,9 @@ class MainWindow(QWidget):
 
         self.json_path = DEFAULT_JSON_PATH
 
+        self.label_matrix = None
+        self.last_grid_size = 2
+
         self.setWindowTitle("RPG Map Generator (Early Access)")
         self.setGeometry(100, 100, 1240, 660)
 
@@ -119,22 +122,19 @@ class MainWindow(QWidget):
         middle_button_panel.addWidget(self.grid_size_input)
         layout.addLayout(middle_button_panel, 1, 2)
 
-        self.color_picker_btn = QPushButton("Wybierz kolor")
-        self.color_picker_btn.setFixedSize(100, 30)
-        self.color_picker_btn.clicked.connect(lambda : self.run_color_picker())
-        middle_button_panel.addWidget(self.color_picker_btn)
-        #layout.addLayout(middle_button_panel, 1, 3)
-
 
         self.save_output = QPushButton("Zapisz wynik")
         self.save_output.setFixedSize(100, 30)
         self.save_output.clicked.connect(lambda: self.save_image_dialog())
         layout.addWidget(self.save_output, 1, 3)
 
+        self.clicked_terrain = QLabel("Clicked terrain")
+        layout.addWidget(self.clicked_terrain, 1, 4)
+        
         self.setLayout(layout)
         self.show()
 
-        #self.setMouseTracking(True)
+        self.setMouseTracking(True)
 
     def load_tmp_json(self):
         try:
@@ -149,12 +149,44 @@ class MainWindow(QWidget):
         picker.add_item_to_json(name,slice,self.json_path)
         self.open_json_file(self.json_path)
     
+
+
+    def get_label(self, x,y):
+        label_x = self.output_image.x() 
+        label_y = self.output_image.y()
+        label_w = self.output_image.width()
+        label_h = self.output_image.height()
+
+
+        pixmap_w = self.output_image.pixmap().width()
+        pixmap_h = self.output_image.pixmap().height()
+        pixmap_x = label_w/2 - pixmap_w/2
+        pixmap_y = label_h/2 - pixmap_h/2
+        
+        x_relative_to_label = x - label_x
+        y_relative_to_label = y - label_y
+
+        x_relative_to_pixmap = int(x_relative_to_label - pixmap_x)
+        y_relative_to_pixmap = int(y_relative_to_label - pixmap_y)
+
+        if(x_relative_to_label < 0 or 
+           x_relative_to_label > self.output_image.width() or
+           y_relative_to_label < 0 or
+           y_relative_to_label > self.output_image.height()):
+            return
+        if(y_relative_to_pixmap>= 0 and y_relative_to_pixmap < self.label_matrix.shape[0]
+           and x_relative_to_pixmap>= 0 and x_relative_to_pixmap < self.label_matrix.shape[1]):
+            print("label: "  + str(x_relative_to_pixmap),str(y_relative_to_pixmap))
+            label = self.label_matrix[y_relative_to_pixmap][x_relative_to_pixmap]
+            print(label)
+            self.clicked_terrain.setText(label)
+
     def mousePressEvent(self,e):
 
         x = int(e.position().x())
         y = int(e.position().y())
-        
-        print(self.save_output.text())
+        self.get_label(x,y)
+
         label_x = self.input_image.x() 
         label_y = self.input_image.y()
         label_w = self.input_image.width()
@@ -172,6 +204,11 @@ class MainWindow(QWidget):
         x_relative_to_pixmap = int(x_relative_to_label - pixmap_x)
         y_relative_to_pixmap = int(y_relative_to_label - pixmap_y)
 
+        if(x_relative_to_label < 0 or 
+           x_relative_to_label > self.input_image.width() or
+           y_relative_to_label < 0 or
+           y_relative_to_label > self.input_image.height()):
+            return
         
         if self.slice_point_1 is None:
             self.slice_point_1 = QPoint(x_relative_to_pixmap, y_relative_to_pixmap)
@@ -200,11 +237,6 @@ class MainWindow(QWidget):
         print(str(x) + " " + str(y))
         print(str(x_relative_to_label) + " " + str(y_relative_to_label))
         print(str(x_relative_to_pixmap) + " " + str(y_relative_to_pixmap))
-     
-
-
-    def run_color_picker(self):
-        picker.create_json_with_colors_and_items(self.current_image_path)
 
     def set_grid_size(self):
         raw_input = self.grid_size_input.text().strip()
@@ -272,13 +304,15 @@ class MainWindow(QWidget):
         print("defined colors" + str(defined_colours))
 
         label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=self.GRID_SIZE) 
+        self.label_matrix = label_matrix
+        self.last_grid_size = self.GRID_SIZE
         print("label matrix size: " + str(label_matrix.shape))
         print(label_matrix)
        
         #print(colormap.shape)
        
         
-        map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.5, grid_size=1)
+        map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.9, grid_size=1)
         print("original image size: " + str(map_with_overlay.shape))
         result = Image.fromarray(map_with_overlay)
         self.current_result = label_matrix

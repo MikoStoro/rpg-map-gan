@@ -1,10 +1,9 @@
 import tensorflow as tf
 from gan_utils import *
 import sys
-# caution: path[0] is reserved for script path (or '' in REPL)
-sys.path.insert(1, '/home/mikostoro/Documents/GitHub/rpg-map-gan/data_utils')
+sys.path.insert(1, 'data_utils')
 #import data_utils.dataSetCreator as dataCreator
-import input_generator as input_generator
+#import input_generator as input_generator
 import pix_disc_model_256 as disc
 import pix_gen_model_256 as gen
 import time
