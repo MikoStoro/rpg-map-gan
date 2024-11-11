@@ -5,10 +5,11 @@ from matplotlib import pyplot as plt
 import random
 from sklearn.model_selection import train_test_split
 DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/data_utils/results/"
+
 with tf.device("/cpu:0"):
-    def get_core_filenames():
+    def get_core_filenames(path):
         res = []
-        for file in os.listdir(DATA_PATH):
+        for file in os.listdir(path):
             res.append(get_name_core(file))
         return list(set(res))
 
@@ -24,8 +25,8 @@ with tf.device("/cpu:0"):
         filename = filename[:index]
         return filename
         
-    def extract_arrays(name_filter =  None, limit = None):
-        core_filenames = get_core_filenames()
+    def extract_arrays(name_filter =  None, limit = None, path = DATA_PATH):
+        core_filenames = get_core_filenames(path)
         print(core_filenames)
         inputs = []
         targets = []
@@ -39,10 +40,12 @@ with tf.device("/cpu:0"):
             while(True):
                 input_name = name + "_COLORMAP_" + str(index) + ".npy"
                 target_name = name + "_ORIGINAL_" + str(index) + ".npy"
-                if not os.path.isfile(DATA_PATH + input_name) or not os.path.isfile(DATA_PATH + target_name):
+                if not os.path.isfile(path + input_name) or not os.path.isfile(path + target_name):
+                    print(os.path.isfile(path + input_name))
+                    print(os.path.isfile(path + target_name))
                     break
-                input_img = normalize(tf.cast(np.load(DATA_PATH + input_name),tf.float32))
-                target_img = normalize(tf.cast(np.load(DATA_PATH + target_name),tf.float32))
+                input_img = normalize(tf.cast(np.load(path + input_name),tf.float32))
+                target_img = normalize(tf.cast(np.load(path + target_name),tf.float32))
                 this_map_input.append(input_img)
                 this_map_target.append(target_img)
                 index += 1
@@ -87,15 +90,11 @@ with tf.device("/cpu:0"):
         dataset.save(path)
     #test_images(inputs,targets)
 
-    inputs, targets = extract_arrays(name_filter= None,limit=750)
-    inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.2, random_state=42)
-
+    #inputs, targets = extract_arrays(name_filter= None,limit=750)
+    #inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.2, random_state=42)
     
-    #inputs_train,inputs_test = split_into_train_test(inputs)
-    #targets_train,targets_test = split_into_train_test(targets)
-    #np.save("./fort_joy_dataset_100_inputs", inputs)
-    #np.save("./fort_joy_dataset_100_targets", targets)
-    np.save("./fort_joy_dataset_inputs_train", inputs_train)
-    np.save("./fort_joy_dataset_inputs_test", inputs_test)
-    np.save("./fort_joy_dataset_targets_train", targets_train)
-    np.save("./fort_joy_dataset_targets_test", targets_test)
+    
+    #np.save("./fort_joy_dataset_inputs_train", inputs_train)
+    #np.save("./fort_joy_dataset_inputs_test", inputs_test)
+    #np.save("./fort_joy_dataset_targets_train", targets_train)
+    #np.save("./fort_joy_dataset_targets_test", targets_test)

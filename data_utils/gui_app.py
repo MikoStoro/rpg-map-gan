@@ -22,6 +22,8 @@ TMP_IMG_PATH = "./tmp.png"
 TMP_SLICE_PATH = "./tmp_slice.png"
 DEFAULT_DIR = "./Original Sin II"
 DEFAULT_JSON_PATH = "./tmp.json"
+#RESULTS_DIR = "./results"
+RESULTS_DIR = "./debug_results"
 
 import matplotlib.pyplot as plt
 
@@ -81,12 +83,12 @@ class MainWindow(QWidget):
         self.input_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ##self.input_image.setMouseTracking(True)
         self.input_image.setFrameStyle(QFrame.Shape.Box)
-            
         layout.addWidget(self.input_image, 0, 2)
 
         self.output_image = QLabel()
         self.output_image.setFixedSize(500, 600)
         self.output_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.output_image.setFrameStyle(QFrame.Shape.Box)
         layout.addWidget(self.output_image, 0, 3)
 
         left_button_panel = QHBoxLayout()
@@ -326,7 +328,7 @@ class MainWindow(QWidget):
         if self.current_result is None:
             print("GENERATE RESULT FIRST")
             return
-        results_directory = "./results"
+        results_directory = RESULTS_DIR
         os.makedirs(results_directory, exist_ok=True)
         name = Path(self.current_image_path).stem
         image_name = results_directory + "/" + name + "_ORIGINAL"
@@ -343,7 +345,7 @@ class MainWindow(QWidget):
         np.save(image_name, self.current_image)
         np.save(colormap_name, colormap)
 
-        orig_slices, colormap_slices = dual_sliding_window_matrices_no_padding(self.current_image, colormap, window_size=256, step_size=16)
+        orig_slices, colormap_slices = dual_sliding_window_matrices_no_padding(self.current_image, colormap, window_size=256, step_size=64)
         print("SLICES")
         print(orig_slices.shape)
         print(colormap_slices.shape)
