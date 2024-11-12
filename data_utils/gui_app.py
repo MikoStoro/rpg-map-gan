@@ -15,7 +15,7 @@ import cv2
 import box_color_picker as picker
 import colormap_createor
 from pathlib import Path
-
+from PainterWidget import PainterWidget
 
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
@@ -84,6 +84,18 @@ class MainWindow(QWidget):
         ##self.input_image.setMouseTracking(True)
         self.input_image.setFrameStyle(QFrame.Shape.Box)
         layout.addWidget(self.input_image, 0, 2)
+
+
+        # PAINT
+        paint_layout = QVBoxLayout()
+        self.paint = PainterWidget(self)
+        paint_layout.addWidget(self.paint)
+
+        palette = QHBoxLayout()
+        self.paint.add_palette_buttons(palette)
+        paint_layout.addLayout(palette)
+        layout.addLayout(paint_layout, 0, 2)
+
 
         self.output_image = QLabel()
         self.output_image.setFixedSize(500, 600)
