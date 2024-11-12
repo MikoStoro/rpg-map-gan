@@ -5,21 +5,22 @@ from PyQt6.QtGui import QMouseEvent, QPaintEvent, QPen, QAction, QPainter, QColo
 
 import sys
 
-COLORS = ["#804040", "#008000", "#00B000", "#C0C0C0", "#808080", "#8000FF", "#FFFF80", "#801010", "#400505", "#606060", "#FF8040", "#400040", "#0080FF", "#FF2000", "#000000"]
+COLORS = ["#804040", "#008000", "#00B000", "#C0C0C0", "#808080", "#8000FF", "#FFFF80", "#801010", "#400505", "#606060", "#FF8040", "#400040", "#0080FF", "#FF2000", "#FFFFFF"]
+TERRAINS = ["Dirt", "Grass", "Plant", "Stone", "Metal", "Magic", "Sand", "Wood", "Manmade Wood", "Manmade Stone", "Manmade Sand", "Roof", "Water", "Lava", "None"]
 
 class PainterWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__()
 
-        self.setFixedSize(500, 500)
+        self.setFixedSize(500, 550)
         self.pixmap = QPixmap(self.size())
         self.pixmap.fill(Qt.GlobalColor.white)
 
         self.previous_pos = None
         self.painter = QPainter()
         self.pen = QPen()
-        self.pen.setWidth(4)
+        self.pen.setWidth(12)
         self.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         self.pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
 
@@ -61,8 +62,9 @@ class PainterWidget(QWidget):
         self.update()
 
     def add_palette_buttons(self, layout):
-        for c in COLORS:
+        for (c, t) in zip(COLORS, TERRAINS):
             b = QPaletteButton(c)
+            b.setToolTip(t)
             b.pressed.connect(lambda c=c: self.pen.setColor(QtGui.QColor(c)))
             layout.addWidget(b)
 

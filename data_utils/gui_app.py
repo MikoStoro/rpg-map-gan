@@ -83,8 +83,7 @@ class MainWindow(QWidget):
         self.input_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ##self.input_image.setMouseTracking(True)
         self.input_image.setFrameStyle(QFrame.Shape.Box)
-        layout.addWidget(self.input_image, 0, 2)
-
+        # layout.addWidget(self.input_image, 0, 2)
 
         # PAINT
         paint_layout = QVBoxLayout()
@@ -302,7 +301,8 @@ class MainWindow(QWidget):
     def open_image_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", DEFAULT_DIR, "Obrazy (*.png *.jpg)")
         if ok:
-            self.input_image.setPixmap(QPixmap(filename))
+            # self.input_image.setPixmap(QPixmap(filename))
+            self.paint.load(filename)
             self.current_image_path = filename
             self.current_image = np.asarray(Image.open(filename))
             self.current_result = None
