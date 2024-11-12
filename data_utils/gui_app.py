@@ -8,7 +8,7 @@ import os
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
 from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay, dual_sliding_window_matrices_no_padding
 
-from PyQt6.QtCore import QSize, Qt, QPoint
+from PyQt6.QtCore import QSize, Qt, QPoint, QFile
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout
 import cv2
@@ -313,6 +313,9 @@ class MainWindow(QWidget):
 
 
     def run_classify(self):
+        self.paint.save(TMP_IMG_PATH)
+        self.current_image_path = TMP_IMG_PATH
+
         print("Classification started.")
         defined_colours = json.loads(str(self.json.toPlainText()))
         defined_colours = utils.translate_json_to_colors_dict(defined_colours)
@@ -324,7 +327,7 @@ class MainWindow(QWidget):
         print("label matrix size: " + str(label_matrix.shape))
         print(label_matrix)
        
-        #print(colormap.shape)
+        # print(colormap.shape)
        
         
         map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.9, grid_size=1)
