@@ -13,7 +13,7 @@ class PainterWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
 
-        self.setFixedSize(500, 550)
+        self.setFixedSize(500, 600)
         self.pixmap = QPixmap(self.size())
         self.pixmap.fill(Qt.GlobalColor.white)
 
@@ -61,12 +61,18 @@ class PainterWidget(QWidget):
         self.pixmap.fill(Qt.GlobalColor.white)
         self.update()
 
-    def add_palette_buttons(self, layout):
+    def add_palette_buttons(self, layout: QtWidgets.QVBoxLayout):
         for (c, t) in zip(COLORS, TERRAINS):
-            b = QPaletteButton(c)
-            b.setToolTip(t)
-            b.pressed.connect(lambda c=c: self.pen.setColor(QtGui.QColor(c)))
-            layout.addWidget(b)
+            l = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel(t)
+            label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignCenter)
+            button = QPaletteButton(c)
+            button.pressed.connect(lambda c=c: self.pen.setColor(QtGui.QColor(c)))
+
+            l.addWidget(label)
+            l.addWidget(button)
+
+            layout.addLayout(l)
 
 class QPaletteButton(QtWidgets.QPushButton):
 

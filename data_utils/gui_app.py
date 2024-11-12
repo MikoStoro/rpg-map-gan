@@ -86,13 +86,14 @@ class MainWindow(QWidget):
         # layout.addWidget(self.input_image, 0, 2)
 
         # PAINT
-        paint_layout = QVBoxLayout()
+        paint_layout = QHBoxLayout()
         self.paint = PainterWidget(self)
-        paint_layout.addWidget(self.paint)
 
-        palette = QHBoxLayout()
+        palette = QVBoxLayout()
         self.paint.add_palette_buttons(palette)
+
         paint_layout.addLayout(palette)
+        paint_layout.addWidget(self.paint)
         layout.addLayout(paint_layout, 0, 2)
 
 
