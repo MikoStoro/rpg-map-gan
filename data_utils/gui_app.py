@@ -20,7 +20,7 @@ from pathlib import Path
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
 TMP_SLICE_PATH = "./tmp_slice.png"
-DEFAULT_DIR = "./Original Sin II"
+DEFAULT_DIR = "./Original Sin II (new)\overworld"
 DEFAULT_JSON_PATH = "./tmp.json"
 #RESULTS_DIR = "./results"
 RESULTS_DIR = "./debug_results"
@@ -96,7 +96,6 @@ class MainWindow(QWidget):
         layout.addLayout(slice_manager_panel,0,1)
 
         self.input_image = QLabel()
-        self.input_image.setFixedSize(700, 700)
         self.input_image.setPixmap(QPixmap())
         self.input_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ##self.input_image.setMouseTracking(True)
@@ -104,7 +103,6 @@ class MainWindow(QWidget):
         layout.addWidget(self.input_image, 0, 2)
 
         self.output_image = QLabel()
-        self.output_image.setFixedSize(700, 700)
         self.output_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.output_image.setFrameStyle(QFrame.Shape.Box)
         #self.output_image.setMouseTracking(True)
