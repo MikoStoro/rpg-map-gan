@@ -53,6 +53,26 @@ def _image_into_grid(image: PIL.Image.Image, d: int):
         output.append(cropped_img)
     return output
 
+def change_label(label_matrix, old_label, new_label, x,y, max_x, max_y):
+    if x < 0 or y < 0 or x >= max_x or y >= max_y:
+        return
+    current_label = label_matrix[x][y]
+    if label_matrix[x][y] != old_label:
+        return
+    label_matrix[x][y] = new_label
+    change_label(label_matrix, old_label, new_label, x+1,y, max_x, max_y)
+    change_label(label_matrix, old_label, new_label, x-1,y, max_x, max_y)
+    change_label(label_matrix, old_label, new_label, x,y+1, max_x, max_y)
+    change_label(label_matrix, old_label, new_label, x,y-1, max_x, max_y)
+
+def fill_field_with_color(label_matrix:ndarray, new_label,x,y):
+    max_x = label_matrix.shape[0]
+    max_y = label_matrix.shape[1]
+    current_value = label_matrix[x][y]
+    change_label(label_matrix, current_value, new_label,x,y,max_x,max_y)
+    return label_matrix
+
+
 def _remove_isolated_pixels(color_matrix: ndarray[Any, dtype[Any]]) -> None:
     rows, cols = color_matrix.shape
     for i in range(rows):

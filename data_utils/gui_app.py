@@ -6,11 +6,11 @@ import numpy as np
 import os
 
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
-from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay, dual_sliding_window_matrices_no_padding
+from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay, dual_sliding_window_matrices_no_padding, fill_field_with_color
 
 from PyQt6.QtCore import QSize, Qt, QPoint
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout,QCheckBox, QComboBox, QSlider
 import cv2
 import box_color_picker as picker
 import colormap_createor
@@ -24,6 +24,22 @@ DEFAULT_DIR = "./Original Sin II"
 DEFAULT_JSON_PATH = "./tmp.json"
 #RESULTS_DIR = "./results"
 RESULTS_DIR = "./debug_results"
+
+terrain_types = ["dirt",
+"grass",
+'plant',
+"stone",
+"metal",
+'magic',
+'sand',
+'wood',
+'wood_manmade',
+'stone_manmade',
+'sand_manmade',
+'roof',
+'water',
+'lava',
+'none']
 
 import matplotlib.pyplot as plt
 
@@ -48,6 +64,8 @@ class MainWindow(QWidget):
 
         self.label_matrix = None
         self.last_grid_size = 2
+
+        self.current_colors = None
 
         self.setWindowTitle("RPG Map Generator (Early Access)")
         self.setGeometry(100, 100, 1240, 660)
@@ -78,7 +96,7 @@ class MainWindow(QWidget):
         layout.addLayout(slice_manager_panel,0,1)
 
         self.input_image = QLabel()
-        self.input_image.setFixedSize(500, 600)
+        self.input_image.setFixedSize(700, 700)
         self.input_image.setPixmap(QPixmap())
         self.input_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ##self.input_image.setMouseTracking(True)
@@ -86,9 +104,10 @@ class MainWindow(QWidget):
         layout.addWidget(self.input_image, 0, 2)
 
         self.output_image = QLabel()
-        self.output_image.setFixedSize(500, 600)
+        self.output_image.setFixedSize(700, 700)
         self.output_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.output_image.setFrameStyle(QFrame.Shape.Box)
+        #self.output_image.setMouseTracking(True)
         layout.addWidget(self.output_image, 0, 3)
 
         left_button_panel = QHBoxLayout()
@@ -122,21 +141,42 @@ class MainWindow(QWidget):
         self.grid_size_input.textChanged.connect(lambda : self.set_grid_size())
         self.set_grid_size()
         middle_button_panel.addWidget(self.grid_size_input)
-        layout.addLayout(middle_button_panel, 1, 2)
-
-
+        
         self.save_output = QPushButton("Zapisz wynik")
         self.save_output.setFixedSize(100, 30)
         self.save_output.clicked.connect(lambda: self.save_image_dialog())
-        layout.addWidget(self.save_output, 1, 3)
+        middle_button_panel.addWidget(self.save_output)
+        
+        layout.addLayout(middle_button_panel, 1, 2)
+
+
+
+
+        right_panel =  QHBoxLayout()
 
         self.clicked_terrain = QLabel("Clicked terrain")
-        layout.addWidget(self.clicked_terrain, 1, 4)
+        right_panel.addWidget(self.clicked_terrain)
+
+        self.editCheckbox = QCheckBox("Edit")
+        right_panel.addWidget(self.editCheckbox)
+
+        self.editTerrain = QComboBox()
+        for i in terrain_types: self.editTerrain.addItem(i)
+        right_panel.addWidget(self.editTerrain)
+
+        self.brushSize = QSlider()
+        self.brushSize.setOrientation(Qt.Orientation.Horizontal)
+        self.brushSize.setValue(5)
+        self.brushSize.setMaximum(20)
+        self.brushSize.setMinimum(2)
+        right_panel.addWidget(self.brushSize)
         
+        layout.addLayout(right_panel,1,3)
+
         self.setLayout(layout)
         self.show()
 
-        self.setMouseTracking(True)
+        #self.setMouseTracking(True)
 
     def load_tmp_json(self):
         try:
@@ -152,6 +192,14 @@ class MainWindow(QWidget):
         self.open_json_file(self.json_path)
     
 
+    def convert_labels(self, x,y,r,label):
+        for i in range(x-r, x+r+1):
+            for j in range(y-r, y+r+1):
+                self.current_result[j][i] = label
+        tmp = colormap_createor.get_colormap(self.current_result)
+        result = Image.fromarray(tmp)
+        result.save(TMP_IMG_PATH)
+        self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
 
     def get_label(self, x,y):
         label_x = self.output_image.x() 
@@ -182,6 +230,37 @@ class MainWindow(QWidget):
             label = self.label_matrix[y_relative_to_pixmap][x_relative_to_pixmap]
             print(label)
             self.clicked_terrain.setText(label)
+
+    def mouseMoveEvent(self, a0):
+        if not self.editCheckbox.isChecked():
+            return
+
+        label_x = self.output_image.x() 
+        label_y = self.output_image.y()
+        label_w = self.output_image.width()
+        label_h = self.output_image.height()
+
+
+        pixmap_w = self.output_image.pixmap().width()
+        pixmap_h = self.output_image.pixmap().height()
+        pixmap_x = label_w/2 - pixmap_w/2
+        pixmap_y = label_h/2 - pixmap_h/2
+        x = a0.position().x()
+        y = a0.position().y()
+        x_relative_to_label = x - label_x
+        y_relative_to_label = y - label_y
+
+        x_relative_to_pixmap = int(x_relative_to_label - pixmap_x)
+        y_relative_to_pixmap = int(y_relative_to_label - pixmap_y)
+
+
+        if(x_relative_to_label < 0 or 
+           x_relative_to_label > self.output_image.width() or
+           y_relative_to_label < 0 or
+           y_relative_to_label > self.output_image.height()):
+            return
+        self.convert_labels(x_relative_to_pixmap, y_relative_to_pixmap, self.brushSize.value(), terrain_types[self.editTerrain.currentIndex()])
+        return super().mouseMoveEvent(a0)
 
     def mousePressEvent(self,e):
 
@@ -301,6 +380,7 @@ class MainWindow(QWidget):
 
     def run_classify(self):
         print("Classification started.")
+
         defined_colours = json.loads(str(self.json.toPlainText()))
         defined_colours = utils.translate_json_to_colors_dict(defined_colours)
         print("defined colors" + str(defined_colours))
@@ -310,13 +390,13 @@ class MainWindow(QWidget):
         self.last_grid_size = self.GRID_SIZE
         print("label matrix size: " + str(label_matrix.shape))
         print(label_matrix)
-       
-        #print(colormap.shape)
-       
         
-        map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.9, grid_size=1)
-        print("original image size: " + str(map_with_overlay.shape))
-        result = Image.fromarray(map_with_overlay)
+        #map_with_overlay = get_map_with_scan_overlay(self.current_image_path, label_matrix, defined_colours, opacity=0.8, grid_size=1)
+        ##print("original image size: " + str(map_with_overlay.shape))
+        ##result = Image.fromarray(map_with_overlay)
+        
+        colormap = colormap_createor.get_colormap(label_matrix)
+        result = Image.fromarray(colormap)
         self.current_result = label_matrix
         result.save(TMP_IMG_PATH)
         self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
@@ -336,10 +416,10 @@ class MainWindow(QWidget):
 
         defined_colours = json.loads(str(self.json.toPlainText()))
         defined_colours = utils.translate_json_to_colors_dict(defined_colours)
-        label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=1) 
+        #label_matrix = scan_map(self.current_image_path, defined_colours, grid_size=1) 
         print("SAVED DIMS")
         print(self.current_image.shape)
-        colormap = colormap_createor.get_colormap(label_matrix)
+        colormap = colormap_createor.get_colormap(self.current_result)
         print(colormap.shape)
         Image.fromarray(colormap).save("./tmp_colormap.png")
         np.save(image_name, self.current_image)
