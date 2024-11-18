@@ -193,7 +193,7 @@ class MainWindow(QWidget):
     def convert_labels(self, x,y,r,label):
         for i in range(x-r, x+r+1):
             for j in range(y-r, y+r+1):
-                if i >=0 and j >=0 and i <self.current_result.shape[0] and j < self.current_result.shape[1]:
+                if i >=0 and j >=0 and i < self.current_result.shape[1] and j < self.current_result.shape[0]:
                     self.current_result[j][i] = label
         tmp = colormap_createor.get_colormap(self.current_result)
         result = Image.fromarray(tmp)
