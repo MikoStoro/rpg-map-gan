@@ -9,7 +9,7 @@ import os
 from scanner import get_map_with_scan_overlay, scan_map, save_map_with_scan_overlay, dual_sliding_window_matrices_no_padding, fill_field_with_color
 
 from PyQt6.QtCore import QSize, Qt, QPoint
-from PyQt6.QtGui import QPixmap, QImage
+from PyQt6.QtGui import QPixmap, QImage,QPainter
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout,QCheckBox, QComboBox, QSlider
 import cv2
 import box_color_picker as picker
@@ -197,7 +197,14 @@ class MainWindow(QWidget):
         tmp = colormap_createor.get_colormap(self.current_result)
         result = Image.fromarray(tmp)
         result.save(TMP_IMG_PATH)
-        self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
+        image = QImage(TMP_IMG_PATH)
+        overlay = QImage(self.current_image_path)
+        painter = QPainter()
+        painter.begin(image)
+        painter.setOpacity(0.4)
+        painter.drawImage(0, 0, overlay)
+        painter.end()
+        self.output_image.setPixmap(QPixmap.fromImage(image))
 
     def get_label(self, x,y):
         label_x = self.output_image.x() 
@@ -356,6 +363,7 @@ class MainWindow(QWidget):
     
     def open_json_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", "../", "Pliki .json (*json)")
+       
         if ok:
             self.json_path = filename
             self.open_json_file(filename)
@@ -367,6 +375,7 @@ class MainWindow(QWidget):
     def open_image_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(self, "Wybierz plik", DEFAULT_DIR, "Obrazy (*.png *.jpg)")
         if ok:
+
             self.input_image.setPixmap(QPixmap(filename))
             self.current_image_path = filename
             self.current_image = np.asarray(Image.open(filename))
@@ -374,7 +383,6 @@ class MainWindow(QWidget):
             print("Image opened.")
         else:
             print("Image open cancelled.")
-
 
     def run_classify(self):
         print("Classification started.")
@@ -397,7 +405,18 @@ class MainWindow(QWidget):
         result = Image.fromarray(colormap)
         self.current_result = label_matrix
         result.save(TMP_IMG_PATH)
-        self.output_image.setPixmap(QPixmap(TMP_IMG_PATH))
+        
+
+        image = QImage(TMP_IMG_PATH)
+        overlay = QImage(self.current_image_path)
+        painter = QPainter()
+        painter.begin(image)
+        painter.setOpacity(0.4)
+        painter.drawImage(0, 0, overlay)
+        painter.end()
+
+
+        self.output_image.setPixmap(QPixmap.fromImage(image))
 
     def save_image_dialog(self):
         if self.current_image is None:
