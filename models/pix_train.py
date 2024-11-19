@@ -3,7 +3,7 @@ from gan_utils import *
 import sys
 sys.path.insert(1, 'data_utils')
 #import data_utils.dataSetCreator as dataCreator
-#import input_generator as input_generator
+import input_generator as input_generator
 import pix_disc_model_256 as disc
 import pix_gen_model_256 as gen
 import time
@@ -42,6 +42,7 @@ checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                 generator=generator,
                                 discriminator=discriminator)
 
+
 def generate_images(model, test_input, tar, display = False):
   prediction = model(test_input, training=True)
   plt.figure(figsize=(15, 15))
@@ -58,7 +59,7 @@ def generate_images(model, test_input, tar, display = False):
   if display:
     plt.show()
   else:
-    filename = "output/tarining_output_" + str(time.time()) + ".png"
+    filename = "output/training_output_" + str(time.time()) + ".png"
     plt.savefig(filename)
 
 def generator_loss(disc_generated_output, gen_output, target):

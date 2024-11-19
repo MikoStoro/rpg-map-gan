@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import random
 from sklearn.model_selection import train_test_split
-DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/data_utils/results/"
+DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/debug_results/"
 
 with tf.device("/cpu:0"):
     def get_core_filenames(path):
@@ -73,7 +73,7 @@ with tf.device("/cpu:0"):
                 plt.subplot(1, 2, i+1)
                 plt.title(title[i])
                 # Getting the pixel values in the [0, 1] range to plot.
-                plt.imshow(display_list[i])
+                plt.imshow(display_list[i] * 0.5 + 0.5)
                 plt.axis('off')
             plt.show()
 
@@ -90,11 +90,34 @@ with tf.device("/cpu:0"):
         dataset.save(path)
     #test_images(inputs,targets)
 
-    #inputs, targets = extract_arrays(name_filter= None,limit=750)
-    #inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.2, random_state=42)
+    def rotate_images(inputs: np.ndarray, targets: np.ndarray):
+        rotated_targets = []
+        rotated_inputs = []
+        for i in range(min([len(inputs), len(targets)])):
+            for j in range(4):
+                inp = inputs[i]
+                tar = targets[i]
+                rotated_inputs.append(tf.image.rot90(inp, j))
+                rotated_targets.append(tf.image.rot90(tar, j))
+        return rotated_inputs,rotated_targets
+
+    def discard_alpha(targets : np.ndarray):
+        targets_no_alpha = [ x[:,:,:3] for x in targets  ]
+        return targets_no_alpha
+        
+    inputs, targets = extract_arrays(name_filter= None,limit=750)
+    targets = discard_alpha(targets)
+    inputs, targets = rotate_images(inputs,targets)
+    inputs = np.asarray(inputs)
+    targets = np.asarray(targets)
+    print("rotated dataset: " + str(len(inputs)))
+    print(inputs.shape)
+    print(targets.shape)
+    #test_images(inputs,targets)
+    inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.2, random_state=42)
+
     
-    
-    #np.save("./fort_joy_dataset_inputs_train", inputs_train)
-    #np.save("./fort_joy_dataset_inputs_test", inputs_test)
-    #np.save("./fort_joy_dataset_targets_train", targets_train)
-    #np.save("./fort_joy_dataset_targets_test", targets_test)
+    np.save("./fort_joy_dataset_inputs_train", inputs_train)
+    np.save("./fort_joy_dataset_inputs_test", inputs_test)
+    np.save("./fort_joy_dataset_targets_train", targets_train)
+    np.save("./fort_joy_dataset_targets_test", targets_test)
