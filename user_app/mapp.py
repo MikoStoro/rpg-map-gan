@@ -2,7 +2,7 @@ import sys
 
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
 
-from PyQt6.QtCore import QSize, Qt, QPoint, QFile
+from PyQt6.QtCore import QSize, Qt, QPoint, QFile, QRect
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, \
     QHBoxLayout, QLineEdit, QFrame, QVBoxLayout, QComboBox, QSlider, QRadioButton, QButtonGroup
@@ -120,7 +120,13 @@ class MainWindow(QWidget):
         pass 
 
     def process(self):
-        self.paint.save("tmp.png")
+        size = self.paint.size().width()
+        cuts = size // 256
+        for i in range(cuts):
+            for j in range(cuts):
+                rect = QRect(i*256, j*256, 256, 256)
+                cut = self.paint.pixmap.copy(rect)
+                cut.save("tmp"+str(i)+str(j)+".png")
 
     def refresh_palette(self):
         self.paint.filter_palette_buttons(self.current_model.colors)
@@ -130,6 +136,7 @@ class MainWindow(QWidget):
         self.output_image.setFixedSize(value, value)
         self.paint.setFixedSize(value,value)
         self.paint.new_size()
+        self.adjustSize()
 
 if __name__ == "__main__":
     print("Starting...")
