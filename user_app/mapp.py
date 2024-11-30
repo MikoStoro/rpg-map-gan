@@ -5,7 +5,7 @@ import sys
 from PyQt6.QtCore import QSize, Qt, QPoint, QFile
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, \
-    QHBoxLayout, QLineEdit, QFrame, QVBoxLayout, QComboBox, QSlider, QRadioButton
+    QHBoxLayout, QLineEdit, QFrame, QVBoxLayout, QComboBox, QSlider, QRadioButton, QButtonGroup
 from PainterWidget import PainterWidget
 
 class ModelData:
@@ -69,14 +69,28 @@ class MainWindow(QWidget):
         self.brushSize.setMinimum(1)
         self.brushSize.valueChanged.connect(self.paint.set_pen_size)
 
-        self.brushType = QRadioButton("circle")
-        self.brushType.setChecked(True)
-        self.brushType.toggled.connect(self.paint.set_pen_shape)
-        self.brushType2 = QRadioButton("square")
-        self.brushType2.toggled.connect(self.paint.set_pen_shape)
+        self.brush_type = QRadioButton("circle")
+        self.brush_type.setChecked(True)
+        self.brush_type.toggled.connect(self.paint.set_pen_shape)
+        self.brush_type2 = QRadioButton("square")
+        self.brush_type2.toggled.connect(self.paint.set_pen_shape)
+        self.bruh_group = QButtonGroup()
+        self.bruh_group.addButton(self.brush_type)
+        self.bruh_group.addButton(self.brush_type2)
 
-        self.toolbar.addWidget(self.brushType)
-        self.toolbar.addWidget(self.brushType2)
+        self.canvas_size = QRadioButton("256")
+        self.canvas_size.setChecked(True)
+        self.canvas_size.toggled.connect(self.set_size)
+        self.canvas_size2 = QRadioButton("512")
+        self.canvas_size2.toggled.connect(self.set_size)
+        self.canvas_group = QButtonGroup()
+        self.canvas_group.addButton(self.canvas_size)
+        self.canvas_group.addButton(self.canvas_size2)
+
+        self.toolbar.addWidget(self.canvas_size)
+        self.toolbar.addWidget(self.canvas_size2)
+        self.toolbar.addWidget(self.brush_type)
+        self.toolbar.addWidget(self.brush_type2)
         self.toolbar.addWidget(self.brushSize)
         self.toolbar.addWidget(self.model_select)
         self.toolbar.addWidget(self.reset_button)
@@ -110,6 +124,12 @@ class MainWindow(QWidget):
 
     def refresh_palette(self):
         self.paint.filter_palette_buttons(self.current_model.colors)
+
+    def set_size(self):
+        value = int(self.sender().text())
+        self.output_image.setFixedSize(value, value)
+        self.paint.setFixedSize(value,value)
+        self.paint.new_size()
 
 if __name__ == "__main__":
     print("Starting...")

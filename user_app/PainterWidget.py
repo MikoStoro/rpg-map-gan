@@ -28,6 +28,10 @@ class PainterWidget(QWidget):
         self.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         self.pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
 
+    def new_size(self):
+        self.pixmap = QPixmap(self.size())
+        self.pixmap.fill(self.default_color)
+
     def paintEvent(self, e: QPaintEvent) -> None:
         with QPainter(self) as painter:
             painter.drawPixmap(0, 0, self.pixmap)
