@@ -1,4 +1,4 @@
-data_utils/dungeons/*
+data_utils/__pycache__/*
 maps/dungeons/*
 *.npy
 runs/*

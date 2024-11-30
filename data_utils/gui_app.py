@@ -20,7 +20,7 @@ from pathlib import Path
 DEFAULT_COLORS = '{\n    "S": [128, 128, 128],\n    "K": [0, 0, 0],\n    "W": [50, 50, 255],\n    "D": [139, 69, 19],\n    "G": [50, 140, 50]\n}'
 TMP_IMG_PATH = "./tmp.png"
 TMP_SLICE_PATH = "./tmp_slice.png"
-DEFAULT_DIR = "./Original Sin II (new)\overworld"
+DEFAULT_DIR = "./Original Sin II (new)/underground"
 DEFAULT_JSON_PATH = "./tmp.json"
 #RESULTS_DIR = "./results"
 RESULTS_DIR = "./debug_results"
@@ -443,7 +443,7 @@ class MainWindow(QWidget):
         np.save(image_name, self.current_image)
         np.save(colormap_name, colormap)
 
-        orig_slices, colormap_slices = dual_sliding_window_matrices_no_padding(self.current_image, colormap, window_size=256, step_size=64)
+        orig_slices, colormap_slices = dual_sliding_window_matrices_no_padding(self.current_image, colormap, window_size=256, step_size=32)
         print("SLICES")
         print(orig_slices.shape)
         print(colormap_slices.shape)

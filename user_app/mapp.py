@@ -4,7 +4,8 @@ import sys
 
 from PyQt6.QtCore import QSize, Qt, QPoint, QFile
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, QHBoxLayout, QLineEdit, QFrame,QVBoxLayout, QComboBox
+from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, \
+    QHBoxLayout, QLineEdit, QFrame, QVBoxLayout, QComboBox, QSlider, QRadioButton
 from PainterWidget import PainterWidget
 
 class ModelData:
@@ -60,10 +61,28 @@ class MainWindow(QWidget):
         self.reset_button.clicked.connect(lambda: self.paint.clear())
         self.process_button = QPushButton("Process")
         self.process_button.clicked.connect(lambda: self.process())
+
+        self.brushSize = QSlider()
+        self.brushSize.setOrientation(Qt.Orientation.Horizontal)
+        self.brushSize.setValue(15)
+        self.brushSize.setMaximum(150)
+        self.brushSize.setMinimum(1)
+        self.brushSize.valueChanged.connect(self.paint.set_pen_size)
+
+        self.brushType = QRadioButton("circle")
+        self.brushType.setChecked(True)
+        self.brushType.toggled.connect(self.paint.set_pen_shape)
+        self.brushType2 = QRadioButton("square")
+        self.brushType2.toggled.connect(self.paint.set_pen_shape)
+
+        self.toolbar.addWidget(self.brushType)
+        self.toolbar.addWidget(self.brushType2)
+        self.toolbar.addWidget(self.brushSize)
         self.toolbar.addWidget(self.model_select)
         self.toolbar.addWidget(self.reset_button)
         self.toolbar.addWidget(self.process_button)
-      
+
+
 
         self.setLayout(layout)
         self.show()

@@ -41,7 +41,7 @@ class PainterWidget(QWidget):
         self.painter.begin(self.pixmap)
         self.painter.setRenderHints(QPainter.RenderHint.Antialiasing, True)
         self.painter.setPen(self.pen)
-        self.painter.drawLine(self.previous_pos, curr_pos)
+        self.painter.drawPoint(curr_pos)
         self.painter.end()
 
         self.previous_pos = curr_pos
@@ -109,6 +109,16 @@ class PainterWidget(QWidget):
         except:
             self.default_color = d["None"]
             self.underline_terrain("None")
+
+    def set_pen_size(self, size):
+        self.pen.setWidth(size)
+
+    def set_pen_shape(self):
+        name = self.sender().text()
+        if name == "circle":
+            self.pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        elif name == "square":
+            self.pen.setCapStyle(Qt.PenCapStyle.SquareCap)
 
 
     def set_model(self, model):
