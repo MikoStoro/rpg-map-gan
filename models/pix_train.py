@@ -7,21 +7,45 @@ import input_generator as input_generator
 import pix_disc_model_256 as disc
 import pix_gen_model_256 as gen
 import time
+import pickle
+from pathlib import Path
 
 
 
-LAMBDA = 100
+DATASET_NAME = "overworld"
+LAMBDA = 90 #100
 loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
-input_dataset_train = np.load("./fort_joy_dataset_inputs_train.npy")
-target_dataset_train = np.load("./fort_joy_dataset_targets_train.npy")
-input_dataset_test = np.load("./fort_joy_dataset_inputs_test.npy")
-target_dataset_test = np.load("./fort_joy_dataset_targets_test.npy")
+input_dataset_train = None
+with open("./" + DATASET_NAME +"_inputs_train", "rb") as f:
+  input_dataset_train = pickle.load(f)
+
+target_dataset_train = None
+with open("./" + DATASET_NAME +"_targets_train", "rb") as f:
+  target_dataset_train = pickle.load(f)
+
+input_dataset_test = None
+with open("./" + DATASET_NAME +"_inputs_test", "rb") as f:
+  input_dataset_test = pickle.load(f)
+
+target_dataset_test = None
+with open("./" + DATASET_NAME +"_targets_test", "rb") as f:
+  target_dataset_test = pickle.load(f)
+
 dataset_train = tf.data.Dataset.from_tensor_slices((input_dataset_train, target_dataset_train))
 dataset_test = tf.data.Dataset.from_tensor_slices((input_dataset_test, target_dataset_test))
 IMG_DIMENSION = 9
 BATCH_SIZE = 1
-log_dir = "./train_logs"
+run_name = "test_run"
+output_dir = "./" + run_name + "/outputs"
+log_dir = "./" + run_name + "/logs"
+models_dir = "./" + run_name + "/models"
+
+
+
+Path(output_dir).mkdir(parents=True, exist_ok=True)
+Path(log_dir).mkdir(parents=True, exist_ok=True)
+Path(models_dir).mkdir(parents=True, exist_ok=True)
 
 generator = gen.create()
 discriminator = disc.create()
@@ -59,8 +83,9 @@ def generate_images(model, test_input, tar, display = False):
   if display:
     plt.show()
   else:
-    filename = "output/training_output_" + str(time.time()) + ".png"
+    filename = output_dir + "/training_output_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".png"
     plt.savefig(filename)
+  plt.close()
 
 def generator_loss(disc_generated_output, gen_output, target):
   gan_loss = loss_object(tf.ones_like(disc_generated_output), disc_generated_output)
@@ -68,7 +93,7 @@ def generator_loss(disc_generated_output, gen_output, target):
   # Mean absolute error
   l1_loss = tf.reduce_mean(tf.abs(target - gen_output))
 
-  total_gen_loss = gan_loss + (LAMBDA * l1_loss)
+  total_gen_loss = ((101-LAMBDA) * gan_loss) + (LAMBDA * l1_loss)
 
   return total_gen_loss, gan_loss, l1_loss
 
@@ -114,6 +139,21 @@ def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
   start = time.time()
 
   for step, (input_image, target) in dataset.shuffle(buffer_size=10).repeat().batch(1).take(steps).enumerate():
+    
+    #random rotation
+    k = np.random.randint(0,4)
+    input_image = tf.image.rot90(input_image, k)
+    target = tf.image.rot90(target, k)
+    
+    # Random mirroring
+    if tf.random.uniform(()) > 0.5:
+      input_image = tf.image.flip_left_right(input_image)
+      target = tf.image.flip_left_right(target)
+    
+    if tf.random.uniform(()) > 0.5:
+      input_image = tf.image.flip_up_down(input_image)
+      target = tf.image.flip_up_down(target)
+
     if (step) % 1000 == 0:
       #display.clear_output(wait=True)
 
@@ -122,7 +162,7 @@ def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
 
       start = time.time()
       example_input, example_target = next(iter(dataset_test.shuffle(buffer_size=10, reshuffle_each_iteration=True).batch(1).take(1)))
-      fake_input = next(iter(tf.data.Dataset.from_tensor_slices([normalize(input_generator.get_input())]).batch(1).take(1)))
+      fake_input = next(iter(tf.data.Dataset.from_tensor_slices([normalize(input_generator.get_input(["stone", "grass", "water", "sand", "stone_manmade"]))]).batch(1).take(1)))
       generate_images(generator, fake_input, example_target)
       generate_images(generator, example_input, example_target)
       print(f"Step: {step//1000}k")
@@ -134,11 +174,11 @@ def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
       print('.', end='', flush=True)
 
 
-    # Save (checkpoint) the model every 5k steps
-    if (step + 1) % 5000 == 0:
+    # Save (checkpoint) the model every 2k steps
+    if (step +1) % 2000 == 0:
       checkpoint.save(file_prefix=checkpoint_prefix)
+      discriminator.save(models_dir + "/disc_model_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".keras")
+      generator.save(models_dir + "/gen_model_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") +".keras")
 
 
 fit(dataset_train, dataset_test, steps=40000)
-
-#run_gan()

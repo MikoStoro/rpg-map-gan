@@ -22,7 +22,7 @@ class Point:
     def get_children(self):
         children = []
         children.append( Point(self.value,self.x+1, self.y))
-        children.append(Point(self.value,self.x-1, self.y))
+        children.append( Point(self.value,self.x-1, self.y))
         children.append( Point(self.value,self.x, self.y+1))
         children.append( Point(self.value,self.x, self.y-1))
         return children
@@ -33,9 +33,11 @@ class Point:
         return children
         
 
-def get_map(x=128,y=128,points=5,classes=5):
+def get_map(x=128, y=128, points=5, classes=5, labels_list = None):
     num_of_points = points
     num_of_calsses = classes
+    if labels_list is None:
+        labels_list = labels
     x_dim = x
     y_dim = y
     
@@ -44,7 +46,7 @@ def get_map(x=128,y=128,points=5,classes=5):
     active_points = []
     for i in range(num_of_points):
         #active_points += Point(np.random.randint(1,num_of_calsses+1),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
-        active_points += Point(np.random.choice(labels),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
+        active_points += Point(np.random.choice(labels_list),np.random.randint(x_dim), np.random.randint(y_dim)).get_children_and_self()
 
     while len(active_points) > 0:
         current_index = np.random.randint(len(active_points))
@@ -70,8 +72,8 @@ def upsample_map(input_map, scale=2):
 def upsample_maps(map_array, scale):
     return [  upsample_map(m, scale) for m in map_array  ]
 
-def get_input():
-    return get_colormap(get_map(x=256,y=256,points=5,classes=5))
+def get_input(labels_list = None):
+    return get_colormap(get_map(x=256,y=256,points=5,classes=5, labels_list=labels_list))
 
 
 

@@ -3,8 +3,10 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 import random
+import pickle
 from sklearn.model_selection import train_test_split
-DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/debug_results/"
+DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/overworld/"
+DATASET_NAME = "overworld"
 
 with tf.device("/cpu:0"):
     def get_core_filenames(path):
@@ -49,8 +51,6 @@ with tf.device("/cpu:0"):
                 this_map_input.append(input_img)
                 this_map_target.append(target_img)
                 index += 1
-                if limit is not None and index > limit:
-                    break
             if(len(this_map_input) <= limit):
                 for x in this_map_input: inputs.append(x)
                 for x in this_map_target: targets.append(x)
@@ -105,19 +105,26 @@ with tf.device("/cpu:0"):
         targets_no_alpha = [ x[:,:,:3] for x in targets  ]
         return targets_no_alpha
         
-    inputs, targets = extract_arrays(name_filter= None,limit=750)
+    inputs, targets = extract_arrays(name_filter= None,limit=9999)
     targets = discard_alpha(targets)
-    inputs, targets = rotate_images(inputs,targets)
+    #inputs, targets = rotate_images(inputs,targets)
     inputs = np.asarray(inputs)
     targets = np.asarray(targets)
     print("rotated dataset: " + str(len(inputs)))
     print(inputs.shape)
     print(targets.shape)
-    #test_images(inputs,targets)
-    inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.2, random_state=42)
+    test_images(inputs,targets)
+    inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.1, random_state=42)
 
     
-    np.save("./fort_joy_dataset_inputs_train", inputs_train)
-    np.save("./fort_joy_dataset_inputs_test", inputs_test)
-    np.save("./fort_joy_dataset_targets_train", targets_train)
-    np.save("./fort_joy_dataset_targets_test", targets_test)
+    with open("./" + DATASET_NAME +"_inputs_train", "wb") as f:
+        pickle.dump(inputs_train, f)
+
+    with open("./" + DATASET_NAME +"_inputs_test", "wb") as f:
+        pickle.dump(inputs_test, f)
+    
+    with open("./" + DATASET_NAME +"_targets_train", "wb") as f:
+        pickle.dump(targets_train, f)
+
+    with open("./" + DATASET_NAME +"_targets_test", "wb") as f:
+        pickle.dump(targets_test, f)
