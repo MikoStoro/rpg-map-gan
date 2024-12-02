@@ -15,7 +15,7 @@ color_dict = dict(  dirt=(255, 179, 0),
                     lava=(179, 40, 81),
                     none=(244, 200, 0))
 
-color_dict_2 = dict( dirt=(204, 153, 0),
+'''color_dict_2 = dict( dirt=(204, 153, 0),
     grass=(0, 255, 0),
     plant=(0,128,0),
     stone=(128, 128, 128),
@@ -30,7 +30,7 @@ color_dict_2 = dict( dirt=(204, 153, 0),
     water=(0,0,255),
     lava=(255, 102, 0),
     none=(0, 0, 0))
-
+'''
 
 
 labels_path = "./labels.txt"

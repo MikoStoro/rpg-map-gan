@@ -8,3 +8,5 @@ train_logsfit
 train_logsfit/*
 output/*
 training_checkpoints/*
+run*
+datasets/*

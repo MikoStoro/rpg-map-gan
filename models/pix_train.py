@@ -12,8 +12,8 @@ from pathlib import Path
 
 
 
-DATASET_NAME = "overworld"
-LAMBDA = 90 #100
+DATASET_NAME = "datasets/caves"
+LAMBDA = 100 #100
 loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 input_dataset_train = None
@@ -36,7 +36,7 @@ dataset_train = tf.data.Dataset.from_tensor_slices((input_dataset_train, target_
 dataset_test = tf.data.Dataset.from_tensor_slices((input_dataset_test, target_dataset_test))
 IMG_DIMENSION = 9
 BATCH_SIZE = 1
-run_name = "test_run"
+run_name = "caves_100_1"
 output_dir = "./" + run_name + "/outputs"
 log_dir = "./" + run_name + "/logs"
 models_dir = "./" + run_name + "/models"
@@ -162,7 +162,7 @@ def fit(dataset : tf.data.Dataset, dataset_test : tf.data.Dataset, steps):
 
       start = time.time()
       example_input, example_target = next(iter(dataset_test.shuffle(buffer_size=10, reshuffle_each_iteration=True).batch(1).take(1)))
-      fake_input = next(iter(tf.data.Dataset.from_tensor_slices([normalize(input_generator.get_input(["stone", "grass", "water", "sand", "stone_manmade"]))]).batch(1).take(1)))
+      fake_input = next(iter(tf.data.Dataset.from_tensor_slices([normalize(input_generator.get_input(["stone", "none", "lava", "stone_manmade"]))]).batch(1).take(1)))
       generate_images(generator, fake_input, example_target)
       generate_images(generator, example_input, example_target)
       print(f"Step: {step//1000}k")

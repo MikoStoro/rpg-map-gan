@@ -5,8 +5,9 @@ from matplotlib import pyplot as plt
 import random
 import pickle
 from sklearn.model_selection import train_test_split
-DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/overworld/"
-DATASET_NAME = "overworld"
+DATA_PATH = "/home/mikostoro/Documents/GitHub/rpg-map-gan/datasets/caves/caves/"
+DATASET_NAME = "caves"
+DATASET_PATH = "./datasets/"
 
 with tf.device("/cpu:0"):
     def get_core_filenames(path):
@@ -46,10 +47,8 @@ with tf.device("/cpu:0"):
                     print(os.path.isfile(path + input_name))
                     print(os.path.isfile(path + target_name))
                     break
-                input_img = normalize(tf.cast(np.load(path + input_name),tf.float32))
-                target_img = normalize(tf.cast(np.load(path + target_name),tf.float32))
-                this_map_input.append(input_img)
-                this_map_target.append(target_img)
+                this_map_input.append(normalize(np.load(path + input_name).astype(np.float32)))
+                this_map_target.append(normalize(np.load(path + target_name).astype(np.float32)))
                 index += 1
             if(len(this_map_input) <= limit):
                 for x in this_map_input: inputs.append(x)
@@ -105,7 +104,7 @@ with tf.device("/cpu:0"):
         targets_no_alpha = [ x[:,:,:3] for x in targets  ]
         return targets_no_alpha
         
-    inputs, targets = extract_arrays(name_filter= None,limit=9999)
+    inputs, targets = extract_arrays(name_filter= None,limit=99999)
     targets = discard_alpha(targets)
     #inputs, targets = rotate_images(inputs,targets)
     inputs = np.asarray(inputs)
@@ -113,18 +112,19 @@ with tf.device("/cpu:0"):
     print("rotated dataset: " + str(len(inputs)))
     print(inputs.shape)
     print(targets.shape)
-    test_images(inputs,targets)
+    #test_images(inputs,targets)
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.1, random_state=42)
 
-    
-    with open("./" + DATASET_NAME +"_inputs_train", "wb") as f:
-        pickle.dump(inputs_train, f)
-
-    with open("./" + DATASET_NAME +"_inputs_test", "wb") as f:
-        pickle.dump(inputs_test, f)
-    
-    with open("./" + DATASET_NAME +"_targets_train", "wb") as f:
-        pickle.dump(targets_train, f)
-
-    with open("./" + DATASET_NAME +"_targets_test", "wb") as f:
+    with open("./datasets/" + DATASET_NAME + "_targets_test", "wb") as f:
         pickle.dump(targets_test, f)
+        print("saved taargets test")
+    with open("./datasets/" + DATASET_NAME + "_inputs_test", "wb") as f:
+        pickle.dump(inputs_test, f)
+        print("saved inputs test")
+    with open("./datasets/" + DATASET_NAME + "_inputs_train", "wb") as f:
+        pickle.dump(inputs_train, f)
+        print("saved inputs train")
+    with open("./datasets/" + DATASET_NAME + "_targets_train", "wb") as f:
+        pickle.dump(targets_train, f)
+        print("saved taargets train")
+

@@ -1,12 +1,14 @@
 import sys
-
+from PIL import Image
 # from box_color_picker import create_mouse_event, create_json_with_colors_and_items
-
+import numpy as np
 from PyQt6.QtCore import QSize, Qt, QPoint, QFile, QRect
-from PyQt6.QtGui import QPixmap, QImage
+from PyQt6.QtGui import QPixmap, QImage, QPainter
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, \
     QHBoxLayout, QLineEdit, QFrame, QVBoxLayout, QComboBox, QSlider, QRadioButton, QButtonGroup
 from PainterWidget import PainterWidget
+import keras
+import tensorflow as tf
 
 class ModelData:
     def __init__(self, name, path, colors, default_t, default_p):
@@ -17,8 +19,11 @@ class ModelData:
         self.default_pen = default_p
 
 models = [
-     ModelData("Overworld", "./tmp_path", [ "Grass", "Stone", "Sand", "Water", "Dirt"], "Water", "Grass"), 
-     ModelData("Caves", "./tmp_path2", ["None", "Stone", "Manmade Stone", "Lava"], "None", "Stone")]
+     ModelData("Overworld", "./caves_100_1/models/gen_model_20241202-125456.keras", [ "Grass", "Stone", "Sand", "Water", "Dirt"], "Water", "Grass"), 
+     ModelData("Caves", "./caves_90_10/models/gen_model_20241201-204041.keras", ["None", "Stone", "Manmade Stone", "Lava"], "None", "Stone")]
+def normalize(img):
+    img = (img / 127.5) - 1
+    return img
 
 class MainWindow(QWidget):
    
@@ -26,6 +31,8 @@ class MainWindow(QWidget):
         super().__init__(*args, **kwargs)
 
         self.current_model = models[0]
+        self.keras_model = None
+        self.load_model(self.current_model.path)
 
         self.setWindowTitle("RPG Map Generator (Early Access)")
         #self.setGeometry(100, 100, 1240, 660)
@@ -109,7 +116,7 @@ class MainWindow(QWidget):
             self.model_select.addItem(m.name)
 
     def load_model(self, path):
-        pass
+        self.keras_model = keras.saving.load_model(path)
 
     def switch_model(self):
         self.current_model = models[self.model_select.currentIndex()]
@@ -117,16 +124,37 @@ class MainWindow(QWidget):
         self.paint.set_default_terrain(self.current_model.default_terrain)
         self.paint.clear()
         self.paint.set_pen_color(self.current_model.default_pen)
+        self.load_model(self.current_model.path)
         pass 
+
+
+    def process_by_model(self, image):
+        input = next(iter(tf.data.Dataset.from_tensor_slices([normalize(image)]).batch(1).take(1)))
+        output = self.keras_model(input)
+        im = (((np.array(output)[0] +1)/2) *255).astype(np.uint8)
+        im = Image.fromarray(im)
+        im.save("./tmp_result.png")
+        result = QImage("./tmp_result.png")
+        return result
 
     def process(self):
         size = self.paint.size().width()
         cuts = size // 256
+        image = QPixmap(size, size).toImage()
+        painter = QPainter()
+        painter.begin(image)
         for i in range(cuts):
             for j in range(cuts):
                 rect = QRect(i*256, j*256, 256, 256)
                 cut = self.paint.pixmap.copy(rect)
                 cut.save("tmp"+str(i)+str(j)+".png")
+                img = np.array(Image.open("tmp"+str(i)+str(j)+".png"))
+                output = self.process_by_model(img)
+                painter.drawImage(i*256, j*256, output)
+        painter.end()
+        self.output_image.setPixmap(QPixmap.fromImage(image))
+                
+
 
     def refresh_palette(self):
         self.paint.filter_palette_buttons(self.current_model.colors)

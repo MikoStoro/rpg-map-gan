@@ -5,8 +5,8 @@ from PyQt6.QtGui import QMouseEvent, QPaintEvent, QPen, QAction, QPainter, QColo
 
 import sys
 
-COLORS = ["#804040", "#008000", "#00B000", "#C0C0C0", "#808080", "#8000FF", "#FFFF80", "#801010", "#400505", "#606060", "#FF8040", "#400040", "#0080FF", "#FF2000", "#FFFFFF"]
-TERRAINS = ["Dirt", "Grass", "Plant", "Stone", "Metal", "Magic", "Sand", "Wood", "Manmade Wood", "Manmade Stone", "Manmade Sand", "Roof", "Water", "Lava", "None"]
+COLORS = [  "#FFB300", "#803E75", "#FF6800", "#A6BDD7", "#C10020", "#CEA262", "#817066", "#007D34", "#F6768E",      "#00538A",       "#FF7A5C",      "#53377A", "#FF8E00", "#B32851", "#F4C800"]
+TERRAINS = ["Dirt",    "Grass",   "Plant",   "Stone",   "Metal",   "Magic",   "Sand",    "Wood",    "Manmade Wood", "Manmade Stone", "Manmade Sand", "Roof",    "Water",   "Lava",    "None"]
 
 class PainterWidget(QWidget):
 
