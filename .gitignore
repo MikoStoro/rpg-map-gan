@@ -10,3 +10,4 @@ output/*
 training_checkpoints/*
 run*
 datasets/*
+*.keras

@@ -7,6 +7,7 @@ from PyQt6.QtGui import QPixmap, QImage, QPainter
 from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QGridLayout, QLabel, QFileDialog, \
     QHBoxLayout, QLineEdit, QFrame, QVBoxLayout, QComboBox, QSlider, QRadioButton, QButtonGroup
 from PainterWidget import PainterWidget
+from keras.models import load_model
 import keras
 import tensorflow as tf
 
@@ -19,8 +20,8 @@ class ModelData:
         self.default_pen = default_p
 
 models = [
-     ModelData("Overworld", "./caves_100_1/models/gen_model_20241202-125456.keras", [ "Grass", "Stone", "Sand", "Water", "Dirt"], "Water", "Grass"), 
-     ModelData("Caves", "./caves_90_10/models/gen_model_20241201-204041.keras", ["None", "Stone", "Manmade Stone", "Lava"], "None", "Stone")]
+     ModelData("Overworld", "./user_app/models/gen_model_overworld.keras", [ "Grass", "Stone", "Sand", "Water", "Dirt"], "Water", "Grass"), 
+     ModelData("Caves", "./user_app/models/gen_model_underground.keras", ["None", "Stone", "Manmade Stone", "Lava"], "None", "Stone")]
 def normalize(img):
     img = (img / 127.5) - 1
     return img

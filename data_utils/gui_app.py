@@ -22,8 +22,8 @@ TMP_IMG_PATH = "./tmp.png"
 TMP_SLICE_PATH = "./tmp_slice.png"
 DEFAULT_DIR = "./Original Sin II (new)/underground"
 DEFAULT_JSON_PATH = "./tmp.json"
-#RESULTS_DIR = "./results"
-RESULTS_DIR = "./debug_results"
+RESULTS_DIR = "./processed_maps"
+#RESULTS_DIR = "./debug_results"
 
 terrain_types = ["dirt",
 "grass",
