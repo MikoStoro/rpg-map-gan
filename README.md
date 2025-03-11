@@ -1,25 +1,15 @@
-# Instrukcja obsługi
+# RPG MAP GAN
+This app creates maps for RPG games in the style of Divinity: Original Sin II minimaps, using generative adversarial networks. It includes a range of tools that can be used to create additional datasets, as well as code necesary for training new models.
 
-## gan_utils.py
-Zawiera funkcje pomocnicze, potrzebne podczas treningu i wizualizacji wyników, jednak nie wchodzące bezpośrednio w skład modeli ani algorytmów uczenia
+## Data_utils
+### gui_app.py
+A desktop app, used to transform images to arrays of labels representing various terrain types.
+### dataSetCreator.py
+A script for creating datasets from data processed by gui_app.
 
-## generator_model.py
-Kod tworzący model generatora. Funkcja create() zwraca obiekt-model
+## Models
+Contains two models - discriminator and generator, as well as a script for training them.
 
-## discriminator_model.py
-Analogicznie jak poprzedni, ale zwraca generator. Do funkcji create() można podać parametr, w zależności czy chcemy dostać model w wersji niemieckiej, czy nie
-
-## train_gan_wasserstein.py
-Zawiera algorytm uczenia sieci neuronowej. Ten plik należy uruchomić, aby rozpocząć uczenie
-
-UWAGA: Kod jest przystosowany do wersji Tensorflow, która jest zainstalowana na serwerach Google colab. Może nie działać odpalony lokalnie
-
-## scanner.py
-Zmienia mapy w macierze na potrzeby GANa za pomocą funkcji.
-* get_scan_map_dataset(): tworzy tensor z całej mapy
-* debug_scan_map(): duplikuje mapę i nakłada na nią klasyfikację
-* scan_map(): zwraca tablicę klasyfikacji terenu (color matrix)
-* get_map_with_scan_overlay(): zwraca obrazek z nałożoną klasyfikacją terenu
-* save_map_with_scan_overlay():  zapisuje wynik get_map_with_scan_overlay() do pliku
-* serialize_map_submatrices() : dzieli mapę na kawałki  i ją serializuje
-
+## User_app
+Contains the actual app. The models are too large to put on github, so here's a link to Google Drive:
+https://drive.google.com/drive/folders/1JNMyVcvEqSahotVdQGqa8KbcrPr36erj?usp=sharing
